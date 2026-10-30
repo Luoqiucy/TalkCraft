@@ -1,0 +1,10 @@
+{
+  "repository": "https://github.com/cjpais/Handy",
+  "commit": "2bdf9ac05724fd6fa22f28dabb664c54a43fae3c",
+  "manifestVersion": "0.9.6",
+  "license": "MIT",
+  "verifiedAt": "2026-09-13",
+  "observedDependencies": {"tauri": "2.11.5", "cpal": "0.16.0", "enigo": "0.6.1"},
+  "integrationStatus": "reference-only-no-source-copied",
+  "next": "Inspect fixed-commit audio and insertion modules, their dependency licenses and platform permissions before selective integration. Current minimal shell is independently written and is not a Handy fork."
+}

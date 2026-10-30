@@ -1,0 +1,53 @@
+{
+  "name": "wireless-ai-mic",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/asr-file.mjs --port 4317",
+    "test": "node --test",
+    "react:build": "vite build",
+    "react:check": "tsc --noEmit",
+    "pricing:check": "tsc -p tsconfig.pricing.json --noEmit",
+    "pricing:build": "vite build --config vite.pricing.config.ts",
+    "pricing:dev": "vite --config vite.pricing.config.ts",
+    "commercial:dev": "node scripts/commercial-gateway.mjs",
+    "desktop:doctor": "node scripts/desktop-doctor.mjs",
+    "desktop:dev": "node scripts/desktop.mjs",
+    "electron:dev": "electron src-electron/main.mjs",
+    "electron:check": "node --check src-electron/main.mjs",
+    "benchmark:asr": "node scripts/asr-benchmark.mjs",
+    "acceptance:memory-benchmark": "node scripts/context-memory-benchmark.mjs",
+    "acceptance:context-memory": "node --test --test-concurrency=1 test/context-memory-acceptance.test.mjs test/context-memory-lifecycle-acceptance.test.mjs test/daisy-question.test.mjs test/personal-memory.test.mjs test/commercial-gateway.test.mjs",
+    "acceptance:context-memory:live": "node scripts/context-memory-live-acceptance.mjs",
+    "compare:asr": "node scripts/asr-compare.mjs",
+    "audit:asr-corpus": "node scripts/asr-corpus-audit.mjs",
+    "collect:asr": "node scripts/asr-batch.mjs",
+    "check": "node --check server.mjs && node --check src/asr-compare.mjs && node --check scripts/asr-compare.mjs && node --check scripts/asr-one.mjs && node --check src/commercial/sqlite-store.mjs && node --check src/commercial/gateway.mjs && node --check src/commercial/desktop-bridge.mjs && node --check scripts/commercial-gateway.mjs && node --check src/pipeline.mjs && node --check src/file-config.mjs && node --check src/providers/deepseek-search.mjs && node --check src/search-orchestrator.mjs && node --check src/agent/router.mjs && node --check src/agent/langchain-tools.mjs && node --check src/agent/langchain-model.mjs && node --check src/agent/langgraph-weather.mjs && node --check src/tools/registry.mjs && node --check src/tools/webpage.mjs && node --check src/tools/weather.mjs && node --check scripts/asr-file.mjs && node --check scripts/asr-benchmark.mjs && node --check scripts/asr-batch.mjs && node --check scripts/asr-corpus-audit.mjs && node --check src/asr-benchmark.mjs && node --check src/asr-batch.mjs && node --check src/config.mjs && node --check src/providers/text.mjs && node --check src/providers/ark.mjs && node --check src/providers/volcengine-asr.mjs && node --check src/asr.mjs && node --check public/app.mjs && node --check public/recording.mjs && node --check public/audio.mjs && node --check public/conversation.mjs && node --check scripts/desktop-doctor.mjs && node --check scripts/desktop.mjs && node --check scripts/tooling-env.mjs && node --check public/shell.mjs && node --check src/workspace.mjs && node --check public/translation.mjs && node --check src/providers/volcengine-protocol.mjs && node --check src/providers/asr-session.mjs && node --check src/providers/asr-transport.mjs && node --check src/providers/asr-diagnostic.mjs && node --check src/providers/asr-config.mjs && node --check src/telemetry.mjs && node --check public/live-ui.mjs && node --check public/live-state.mjs",
+    "sample:asr": "node scripts/asr-one.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.11.4",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^5.0.2",
+    "electron": "44.4.5",
+    "typescript": "^5.9.2",
+    "vite": "7.3.6"
+  },
+  "dependencies": {
+    "@langchain/core": "1.2.11",
+    "@langchain/langgraph": "1.4.16",
+    "langchain": "1.5.11",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-markdown": "10.1.0",
+    "rehype-sanitize": "6.0.0",
+    "remark-gfm": "4.0.1",
+    "ws": "8.21.3",
+    "zod": "4.6.5"
+  }
+}

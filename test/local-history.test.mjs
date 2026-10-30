@@ -1,0 +1,85 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,rm,readdir,readFile,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {createHistoryStore,analyzeWav,audioFormat} from '../src/local-history.mjs';
+import {createServer} from '../server.mjs';
+import {pcmToWav} from '../public/audio.mjs';
+import {exportName,dateGroup} from '../public/history-ui.mjs';
+const prefs={saveText:true,saveAudio:false,textRetention:'forever',audioRetention:'week'};
+const item={id:'record-one',mode:'dictation',status:'recorded'};
+function wav(){const samples=new Int16Array(16000);for(let i=0;i<samples.length;i++)samples[i]=Math.round(Math.sin(i*.2)*4000);return Buffer.from(pcmToWav(samples.buffer));}
+test('记忆执行元数据只保存命中ID、字符数和检索耗时，不保存记忆正文',()=>fixture(async dir=>{const s=createHistoryStore(dir);await s.settings(prefs);const memoryId='123e4567-e89b-42d3-a456-426614174000';await s.record({...item,mode:'chat',status:'completed',originalTranscript:'OPPO手机呢？',attempt:{stage:'ai',status:'completed',search:{allowed:true,memory:{memoryIds:[memoryId],chars:42,elapsedMs:3}}}});const saved=(await s.list()).records[0].attempts[0].search;assert.deepEqual(saved.memory,{memoryIds:[memoryId],chars:42,elapsedMs:3});assert.doesNotMatch(JSON.stringify(saved),/记忆正文/);}));
+async function fixture(fn){const dir=await mkdtemp(join(tmpdir(),'talkcraft-history-'));try{await fn(dir);}finally{await rm(dir,{recursive:true,force:true});}}
+test('历史重启/唯一ID/原始转录不可覆盖，关闭保存保留既有数据；默认无音频文件',()=>fixture(async dir=>{
+ const store=createHistoryStore(dir);assert.equal((await store.list()).settings.saveAudio,false);await store.settings(prefs);await store.record(item);await store.audio(item.id,wav());await assert.rejects(readdir(join(dir,'audio')),e=>e.code==='ENOENT');
+ await store.record({...item,status:'transcribed',originalTranscript:'原始全文🙂',attempt:{stage:'asr',transcript:'原始全文🙂',elapsedMs:350,stopToFinalMs:620,audioPreparationMs:50,asrRequestMs:300}});await store.record({...item,status:'completed',originalTranscript:'不能覆盖',revisedText:'修订',aiResult:'结果'});
+ const restored=createHistoryStore(dir);const data=await restored.list();assert.equal(data.total,1);assert.equal(data.records[0].originalTranscript,'原始全文🙂');assert.equal(data.records[0].aiResult,'结果');assert.equal(data.records[0].attempts[0].elapsedMs,350);assert.equal(data.records[0].attempts[0].stopToFinalMs,620);assert.equal(data.records[0].attempts[0].audioPreparationMs,50);assert.equal(data.records[0].attempts[0].asrRequestMs,300);
+ await restored.settings({...prefs,saveText:false});assert.equal((await restored.list()).total,1);assert.equal((await restored.record({...item,id:'new-task'})).saved,false);
+}));
+test('常见翻译目标语言随历史记录持久化',()=>fixture(async dir=>{
+ const store=createHistoryStore(dir);await store.settings(prefs);await store.record({...item,id:'translation-ar',mode:'translate',status:'completed',targetLanguage:'ar',originalTranscript:'你好',aiResult:'مرحبا'});
+ const restored=(await createHistoryStore(dir).list()).records[0];assert.equal(restored.targetLanguage,'ar');
+}));
+test('旧文字设置/记录保守迁移，原始识别未采集标null，不改旧文件',()=>fixture(async dir=>{
+ let reads=0;const legacy={read:async()=>{reads++;return {preferences:{saveHistory:true},history:[{id:'old-id',mode:'chat',input:'旧输入',output:'旧输出',createdAt:'2026-09-18T00:00:00Z',simulated:true}]};}};const s=createHistoryStore(dir,{legacy});const d=await s.list();assert.equal(d.settings.saveText,true);assert.equal(d.records[0].originalTranscript,null);assert.equal(d.records[0].revisedText,'旧输入');assert.equal(reads,1);
+}));
+test('重启恢复中断任务，重试保留旧AI结果；诊断不附带任一结果正文',()=>fixture(async dir=>{
+ const s=createHistoryStore(dir);await s.settings(prefs);await s.record({...item,status:'completed',aiResult:'FIRST PRIVATE'});await s.record({...item,status:'processing'});
+ const fresh=createHistoryStore(dir);assert.equal((await fresh.list()).records[0].status,'ai-failed');await fresh.record({...item,status:'completed',aiResult:'SECOND PRIVATE'});const r=(await fresh.list()).records[0];assert.ok(r.attempts.some(a=>a.result==='FIRST PRIVATE'));const d=await fresh.diagnostic(item.id);assert.equal(d.audioExists,false);assert.ok(!JSON.stringify(d).includes('PRIVATE'));
+}));
+test('问答历史分开保存搜索许可、实际证据、来源、耗时及安全用量',()=>fixture(async dir=>{
+ const s=createHistoryStore(dir);await s.settings(prefs);await s.record({...item,id:'search-one',mode:'chat',status:'completed',webSearchAllowed:true,aiResult:'回答',attempt:{stage:'ai',status:'completed',provider:'deepseek',model:'deepseek-v4-flash',usage:{inputTokens:20,outputTokens:5,secret:'no'},search:{allowed:true,performed:true,status:'searched',elapsedMs:1234,usage:{webSearchRequests:1},sources:[{title:'官方来源',url:'https://example.com/a',snippet:'不写入历史'},{title:'坏来源',url:'javascript:alert(1)'}]}}});const r=(await createHistoryStore(dir).list()).records[0];
+ assert.equal(r.webSearchAllowed,true);assert.equal(r.attempts[0].search.performed,true);assert.equal(r.attempts[0].search.elapsedMs,1234);assert.deepEqual(r.attempts[0].search.sources,[{url:'https://example.com/a',title:'官方来源',domain:'example.com',evidenceState:'summary',snippet:'不写入历史',publishedAt:'',fetchedAt:''}]);assert.deepEqual(r.attempts[0].usage,{inputTokens:20,outputTokens:5});assert.ok(JSON.stringify(r).includes('不写入历史'));
+}));
+test('Daisy 工具链的实际搜索后端与模型调用信息在重启后保留，凭据不落盘',()=>fixture(async dir=>{
+ const s=createHistoryStore(dir);await s.settings(prefs);await s.record({...item,id:'daisy-search',mode:'chat',status:'completed',attempt:{stage:'ai',status:'completed',search:{allowed:true,engine:'daisy-tools',tool:'search_web',performed:true,status:'searched',diagnostics:{queries:['理想i9 参数'],searchBackends:['firecrawl'],requestEndpoint:'https://api.firecrawl.dev/v1/search?api_key=secret',modelEndpoint:'https://api.deepseek.com/chat/completions?token=secret',modelCalls:2,firstTokenMs:320}}}});
+ const data=(await createHistoryStore(dir).list()).records[0].attempts[0].search;
+ assert.equal(data.engine,'daisy-tools');assert.equal(data.tool,'search_web');assert.deepEqual(data.diagnostics.searchBackends,['firecrawl']);assert.equal(data.diagnostics.modelCalls,2);assert.equal(data.diagnostics.firstTokenMs,320);
+ assert.doesNotMatch(JSON.stringify(data),/secret/);
+}));
+test('实际送入模型的资料统计可持久化，未采集的旧字段显示未记录而非伪造零',()=>fixture(async dir=>{
+ const s=createHistoryStore(dir);await s.settings(prefs);await s.record({...item,id:'context-trace',mode:'chat',status:'completed',attempt:{stage:'ai',status:'completed',search:{allowed:true,performed:true,status:'searched',diagnostics:{context:{sourceCount:2,sourceIds:['source-123456789abc','source-abcdef123456'],fragmentCount:3,synthesisChars:840,truncated:false,toolMessageCount:2},evidenceDecisions:[{turn:1,subject:'理想i9',sufficient:false,reason:'缺少续航',missing:['续航'],latestConfirmed:true}]}}}});
+ await s.record({...item,id:'legacy-context',mode:'chat',status:'completed',attempt:{stage:'ai',status:'completed',search:{allowed:true,performed:true,status:'searched',diagnostics:{context:{}}}}});
+ const restored=createHistoryStore(dir),records=(await restored.list()).records,known=records.find(r=>r.id==='context-trace').attempts[0].search.diagnostics,unknown=records.find(r=>r.id==='legacy-context').attempts[0].search.diagnostics;
+ assert.deepEqual(known.context.sourceIds,['source-123456789abc','source-abcdef123456']);assert.equal(known.context.sourceCount,2);assert.equal(known.context.fragmentCount,3);assert.equal(known.context.synthesisChars,840);assert.equal(known.context.truncated,false);assert.equal(known.evidenceDecisions[0].missing[0],'续航');
+ assert.equal(unknown.context.sourceCount,'未记录');assert.equal(unknown.context.fragmentCount,'未记录');assert.equal(unknown.context.synthesisChars,'未记录');assert.equal(unknown.context.truncated,'未记录');
+}));
+test('执行过程重启后可查看短摘要，去除敏感URL参数且不保存完整网页正文',()=>fixture(async dir=>{
+ const s=createHistoryStore(dir);await s.settings(prefs);const long='公开资料'.repeat(500);await s.record({...item,id:'trace-one',mode:'chat',status:'completed',aiResult:'回答[1]',attempt:{stage:'ai',status:'completed',search:{allowed:true,taskId:'task-1',query:'产品查询',performed:true,status:'searched',elapsedMs:20,toolCalls:1,usedSourceIds:['source-123456789abc'],progress:[{eventId:'task-1:1',taskId:'task-1',callId:'call-1',sequence:1,stage:'searching',tool:'search_web',status:'completed',resultCount:1,elapsedMs:20,input:{query:'产品查询'}}],toolTrace:[{callId:'call-1',sequence:1,tool:'search_web',status:'completed',elapsedMs:20,input:{query:'产品查询'},resultCount:1}],sources:[{sourceId:'source-123456789abc',title:'公开资料',url:'https://example.com/a?token=must-not-save&lang=zh',domain:'example.com',evidenceState:'summary',snippet:long}]}}});const r=(await createHistoryStore(dir).list()).records[0],search=r.attempts[0].search,json=JSON.stringify(r);
+ assert.equal(search.query,'产品查询');assert.equal(search.progress[0].callId,'call-1');assert.equal(search.sources[0].url,'https://example.com/a?lang=zh');assert.equal(search.sources[0].snippet.length,600);assert.ok(!json.includes('must-not-save'));assert.ok(!json.includes(long));
+}));
+test('Firecrawl网页读取轨迹、方法与终止原因重启后保留且来源上限不截断',()=>fixture(async dir=>{
+ const store=createHistoryStore(dir);await store.settings(prefs);const sources=Array.from({length:10},(_,i)=>({sourceId:`source-${String(i).padStart(12,'0')}`,title:`来源${i}`,url:`https://example.com/${i}`,readMethod:i===9?'firecrawl':undefined}));
+ await store.record({...item,id:'firecrawl-trace',mode:'chat',status:'completed',attempt:{stage:'ai',status:'completed',search:{allowed:true,performed:true,status:'searched',toolCalls:2,terminationReason:'protocol-error',sources,toolTrace:[{callId:'firecrawl-call',sequence:2,tool:'scrape_webpage',status:'completed',elapsedMs:420,input:{url:'https://example.com/page',method:'firecrawl'},resultCount:1}],progress:[{eventId:'task-1:2',taskId:'task-1',callId:'firecrawl-call',sequence:2,stage:'reading',tool:'scrape_webpage',status:'completed',elapsedMs:420,input:{url:'https://example.com/page',method:'firecrawl'}}]}}});
+ const search=(await createHistoryStore(dir).list()).records[0].attempts[0].search;assert.equal(search.toolTrace[0].tool,'scrape_webpage');assert.equal(search.toolTrace[0].input.method,'firecrawl');assert.equal(search.progress[0].tool,'scrape_webpage');assert.equal(search.progress[0].input.method,'firecrawl');assert.equal(search.terminationReason,'protocol-error');assert.equal(search.sources.length,10);assert.equal(search.sources[9].sourceId,'source-000000000009');
+}));
+test('文字不保存而保存音频，期限分别生效，不采集原始和修订正文',()=>fixture(async dir=>{
+ const s=createHistoryStore(dir);await s.settings({...prefs,saveText:false,saveAudio:true,textRetention:'none'});await s.record({...item,status:'acquiring'});assert.equal((await s.list()).total,1);await s.audio(item.id,wav());await s.record({...item,status:'completed',originalTranscript:'PRIVATE',revisedText:'PRIVATE',aiResult:'PRIVATE',attempt:{stage:'asr',transcript:'PRIVATE'}});const r=(await s.list()).records[0];assert.ok(r.audio);assert.equal(r.originalTranscript,null);assert.equal(r.aiResult,'');assert.ok(!JSON.stringify(r).includes('PRIVATE'));
+}));
+test('保存音频后重启读取真实WAV，诊断不夹带转录，格式与文件名真实',()=>fixture(async dir=>{
+ const s=createHistoryStore(dir);await s.settings({...prefs,saveAudio:true});await s.record({...item,status:'asr-failed',error:'HTTP504',attempt:{stage:'asr',transcript:'PRIVATE TRANSCRIPT',provider:'mock',model:'test',error:'Bearer secret-value'}});const bytes=wav();await s.audio(item.id,bytes);
+ const fresh=createHistoryStore(dir),a=await fresh.audioBytes(item.id);assert.deepEqual(a.bytes,bytes);assert.equal(a.format.ext,'wav');const d=await fresh.diagnostic(item.id);assert.equal(d.decodable,true);assert.equal(d.sampleRate,16000);assert.equal(d.duration,1);assert.ok(d.rms>0);assert.ok(!JSON.stringify(d).includes('PRIVATE TRANSCRIPT'));assert.ok(!JSON.stringify(d).includes('secret-value'));assert.ok(exportName(a.record,'wav').endsWith('_dictation_record-o.wav'));assert.ok(!exportName(a.record,'wav').includes('PRIVATE'));
+ assert.throws(()=>audioFormat(Buffer.from('OggS invalid')),/不支持/);assert.throws(()=>analyzeWav(bytes.subarray(0,48)),/截断/);
+}));
+test('删除/5秒撤销/过期清理保护处理中与导出，外部副本不清理',()=>fixture(async dir=>{
+ let now=Date.parse('2026-09-18T00:00:00Z');const s=createHistoryStore(join(dir,'internal'),{now:()=>now});await s.settings({...prefs,saveAudio:true});await s.record(item);await s.audio(item.id,wav());await writeFile(join(dir,'exported.wav'),wav());await s.deletion(item.id);assert.equal((await s.list()).total,0);now+=4000;await s.deletion(item.id,true);assert.equal((await s.list()).total,1);await s.lock(item.id,true);await assert.rejects(s.deletion(item.id),/导出/);await s.lock(item.id,false);await s.record({...item,status:'processing'});now+=10*86400000;await assert.rejects(s.settings({...prefs,saveAudio:true,textRetention:'day',audioRetention:'day'}),/确认/);await s.settings({...prefs,saveAudio:true,textRetention:'day',audioRetention:'day',confirmed:true});assert.equal((await s.list()).total,1);await s.record({...item,status:'completed'});assert.equal((await s.list()).total,0);assert.equal((await readFile(join(dir,'exported.wav'))).length,wav().length);
+}));
+test('永久删除后撤销失败，损坏历史文件不覆盖',()=>fixture(async dir=>{
+ let now=Date.now();const s=createHistoryStore(dir,{now:()=>now});await s.settings(prefs);await s.record(item);await s.deletion(item.id);now+=6000;await s.list();await assert.rejects(s.deletion(item.id,true),/不存在/);await writeFile(join(dir,'records.json'),'broken');await assert.rejects(createHistoryStore(dir).list(),/不会自动覆盖/);assert.equal(await readFile(join(dir,'records.json'),'utf8'),'broken');
+}));
+test('丢失或大小异常的音频在列表标明不可用，文字仍可访问',()=>fixture(async dir=>{
+ const s=createHistoryStore(dir);await s.settings({...prefs,saveAudio:true});await s.record({...item,originalTranscript:'全文'});await s.audio(item.id,wav());const file=(await s.list()).records[0].audio.file;await writeFile(join(dir,'audio',file),Buffer.from('broken'));const r=(await s.list()).records[0];assert.equal(r.originalTranscript,'全文');assert.equal(r.audio,null);assert.match(r.audioReason,/损坏/);await assert.rejects(s.audioBytes(item.id),/损坏|不支持/);
+}));
+test('分批加载/模式搜索/日期分组与失败记录',()=>fixture(async dir=>{
+ const s=createHistoryStore(dir);await s.settings(prefs);for(let i=0;i<36;i++)await s.record({...item,id:'id-'+i,mode:i%2?'chat':'dictation',status:'asr-failed',error:'失败',originalTranscript:'全文'+i});assert.equal((await s.list()).records.length,30);assert.equal((await s.list({offset:30})).records.length,6);assert.equal((await s.list({mode:'chat'})).total,18);assert.equal((await s.list({query:'全文35'})).records[0].id,'id-35');assert.equal(dateGroup('2026-09-17T12:00:00',new Date('2026-09-18T12:00:00')),'昨天');
+}));
+test('HTTP反馈仅本地/幂等/选择附件/可取消诊断，无云请求；ZIP真实容器',()=>fixture(async dir=>{
+ const store=createHistoryStore(dir);await store.settings({...prefs,saveAudio:true});await store.record({...item,originalTranscript:'PRIVATE BODY',aiResult:'PRIVATE AI',attempt:{stage:'asr',transcript:'PRIVATE BODY',error:'api_key=topsecret'}});await store.audio(item.id,wav());let cloudCalls=0;const server=createServer({history:store,provider:{id:'fake',simulated:false,async complete(){cloudCalls++;throw Error();}}});await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
+ try{const post=(p,input)=>fetch(base+'/api/history'+p,{method:'POST',headers:{Origin:base,'Content-Type':'application/json'},body:JSON.stringify(input)});const input={feedbackId:'feedback-1',recordId:item.id,type:'recognition',description:'问题',attachDiagnostic:true};const f=await(await post('/feedback',input)).json();assert.equal(f.sent,false);await post('/feedback',input);const files=await readdir(join(dir,'feedback'));assert.deepEqual(files,['feedback-1.json']);const raw=await readFile(join(dir,'feedback','feedback-1.json'),'utf8');assert.ok(!raw.includes('PRIVATE BODY'));assert.ok(!raw.includes('PRIVATE AI'));assert.ok(!raw.includes('topsecret'));
+ const zip=Buffer.from(await(await fetch(base+'/api/history/feedback-package?id='+f.id)).arrayBuffer());assert.equal(zip.readUInt32LE(0),0x04034b50);assert.ok(!zip.includes(Buffer.from('recording.wav')));
+ const full=await(await post('/feedback',{...input,feedbackId:'feedback-2',attachText:true,attachAudio:true})).json();assert.equal(full.sent,false);const fullZip=Buffer.from(await(await fetch(base+'/api/history/feedback-package?id='+full.id)).arrayBuffer());assert.ok(fullZip.includes(Buffer.from('recording.wav')));assert.ok(fullZip.includes(Buffer.from('PRIVATE BODY')));
+ const controller=new AbortController();controller.abort();await assert.rejects(fetch(base+'/api/history/diagnostic?id='+item.id,{signal:controller.signal}),e=>e.name==='AbortError');assert.equal(cloudCalls,0);assert.equal((await fetch(base+'/api/history/record',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(item)})).status,400);
+ }finally{server.closeAllConnections();await new Promise(r=>server.close(r));}
+}));

@@ -1,0 +1,11 @@
+import {getJson,postJson} from './apiClient';
+export type PersonalMemory={memoryId:string;type:'preference'|'fact'|'project'|'term';content:string;reason:string;sourceRecordId:string|null;independent:boolean;confirmed:boolean;status:'active'|'paused'|'deleted';version:number;syncSelected:boolean;syncState:string;remoteVersion:number;updatedAt:string};
+export type MemorySettings={learningEnabled:boolean;useEnabled:boolean;syncEnabled:boolean;syncCursor:number};
+export type MemoryState={scope:{kind:'guest'|'account'};settings:MemorySettings;memories:PersonalMemory[]};
+export const loadMemories=()=>getJson<MemoryState>('/api/memories');
+export const createMemory=(input:Pick<PersonalMemory,'type'|'content'|'reason'|'sourceRecordId'|'independent'|'syncSelected'>)=>postJson<{memory:PersonalMemory}>('/api/memories/create',{...input,confirmed:true});
+export const updateMemory=(input:Partial<PersonalMemory>&Pick<PersonalMemory,'memoryId'|'version'>)=>postJson<{memory:PersonalMemory}>('/api/memories/update',input);
+export const deleteMemory=(memoryId:string)=>postJson<{deleted:boolean}>('/api/memories/delete',{memoryId});
+export const clearMemories=()=>postJson<{cleared:number}>('/api/memories/clear',{confirmed:true});
+export const updateMemorySettings=(input:Partial<MemorySettings>)=>postJson<{settings:MemorySettings}>('/api/memories/settings',input);
+export const syncMemories=()=>postJson<{synced:boolean;uploaded:number;conflicts:string[];cursor:number}>('/api/memories/sync',{});

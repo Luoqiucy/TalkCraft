@@ -1,0 +1,1592 @@
+Title: 双向流式语音识别WebSocket--豆包语音-火山引擎
+
+URL Source: https://docs.volcengine.com/docs/6561/2630027?lang=zh
+
+Markdown Content:
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)
+
+[](https://www.volcengine.com/)
+
+文档中心
+
+火山方舟 Agent Plan
+
+火山方舟 Coding Plan
+
+火山方舟
+
+节省计划
+
+火山方舟 Agent Plan
+
+火山方舟 Coding Plan
+
+火山方舟
+
+节省计划
+
+简体
+
+[文档](https://docs.volcengine.com/docs)[控制台](https://console.volcengine.com/)
+
+[登录](https://docs.volcengine.com/signin/login?redirectURI=%2F%2Fdocs.volcengine.com%2Fdocs%2F6561%2F2630027%3Flang%3Dzh)[注册](https://signin.volcengine.com/auth/signup?redirectURI=https%3A%2F%2Fdocs.volcengine.com%2Fsignin%2Flogin%3FredirectURI%3D%252F%252Fdocs.volcengine.com%252Fdocs%252F6561%252F2630027%253Flang%253Dzh)
+
+[](https://www.volcengine.com/)
+
+[登录](https://docs.volcengine.com/signin/login?redirectURI=%2F%2Fdocs.volcengine.com%2Fdocs%2F6561%2F2630027%3Flang%3Dzh)[注册](https://signin.volcengine.com/auth/signup?redirectURI=https%3A%2F%2Fdocs.volcengine.com%2Fsignin%2Flogin%3FredirectURI%3D%252F%252Fdocs.volcengine.com%252Fdocs%252F6561%252F2630027%253Flang%253Dzh)
+
+![Image 1: open](blob:http://localhost/153ef94e81fa47905324dd6e86139af3)
+
+豆包语音
+
+[文档指南](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[产品计费](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[API参考](https://docs.volcengine.com/docs/6561/2630027?lang=zh)
+
+二级导航功能
+
+导航栏会按照模块拆分文档内容，方便你快速切换到所需信息哦
+
+![Image 2](https://portal.volccdn.com/obj/volcfe-scm/doccenter/static/image/tips.cb3e415d.png)
+
+我知道了 不再提醒
+
+###### 豆包语音
+
+豆包语音
+
+![Image 3](blob:http://localhost/b8f581220ea4c1c5d416d7a8ded4f903)
+
+![Image 4](blob:http://localhost/874d21dabd5f8f80b79d5c52523a0f9e)
+
+![Image 5](blob:http://localhost/215c1ebbb4b40cfd239c92be227dafec)
+
+API参考
+
+![Image 6](blob:http://localhost/0b6c7d4821d22bd5135aba421b90f6ac)
+
+请输入
+
+![Image 7](blob:http://localhost/cd6fa8b591e55fbffb7f50e85ea368d4)![Image 8](blob:http://localhost/2dd11238f993e75a0ab433604f97165a)
+
+语音合成大模型
+
+音频生成
+
+[音频生成HTTP](https://docs.volcengine.com/docs/6561/2550782?lang=zh)
+
+同步语音合成
+
+[单向流式语音合成HTTP](https://docs.volcengine.com/docs/6561/2528925?lang=zh)
+
+[单向流式语音合成WebSocket](https://docs.volcengine.com/docs/6561/2534913?lang=zh)
+
+[双向流式语音合成WebSocket](https://docs.volcengine.com/docs/6561/2532486?lang=zh)
+
+异步长文本语音合成
+
+[任务提交HTTP](https://docs.volcengine.com/docs/6561/2670603?lang=zh)
+
+[结果查询HTTP](https://docs.volcengine.com/docs/6561/2670604?lang=zh)
+
+声音复刻
+
+[音色训练HTTP](https://docs.volcengine.com/docs/6561/2534906?lang=zh)
+
+[音色查询HTTP](https://docs.volcengine.com/docs/6561/2535742?lang=zh)
+
+[音色升级HTTP](https://docs.volcengine.com/docs/6561/2535751?lang=zh)
+
+音色设计
+
+[音色设计HTTP](https://docs.volcengine.com/docs/6561/2277844?lang=zh)
+
+[错误码查询](https://docs.volcengine.com/docs/6561/2534853?lang=zh)
+
+语音识别大模型
+
+流式语音识别
+
+[单向流式语音识别WebSocket](https://docs.volcengine.com/docs/6561/2628951?lang=zh)
+
+[双向流式语音识别WebSocket](https://docs.volcengine.com/docs/6561/2630027?lang=zh)
+
+录音文件识别
+
+[接入必读](https://docs.volcengine.com/docs/6561/2678884?lang=zh)
+
+录音文件识别标准版
+
+[任务提交-HTTP](https://docs.volcengine.com/docs/6561/2606791?lang=zh)
+
+[结果查询-HTTP](https://docs.volcengine.com/docs/6561/2606792?lang=zh)
+
+录音文件识别闲时版
+
+[任务提交-HTTP](https://docs.volcengine.com/docs/6561/2608618?lang=zh)
+
+[结果查询-HTTP](https://docs.volcengine.com/docs/6561/2608619?lang=zh)
+
+[录音文件识别极速版HTTP](https://docs.volcengine.com/docs/6561/2608628?lang=zh)
+
+[错误码查询](https://docs.volcengine.com/docs/6561/2611432?lang=zh)
+
+端到端实时语音大模型
+
+[接入必读](https://docs.volcengine.com/docs/6561/2549732?lang=zh)
+
+[端到端实时语音-全双工版本](https://docs.volcengine.com/docs/6561/2549778?lang=zh)
+
+语音播客大模型
+
+[播客API-websocket-v3协议](https://docs.volcengine.com/docs/6561/1668014?lang=zh)
+
+语音同传大模型
+
+[同声传译2.0-API接入文档](https://docs.volcengine.com/docs/6561/1756902?lang=zh)
+
+机器翻译大模型
+
+[机器翻译大模型-API接入文档](https://docs.volcengine.com/docs/6561/2306735?lang=zh)
+
+豆包语音妙记
+
+[豆包语音妙记-API接入文档](https://docs.volcengine.com/docs/6561/1798094?lang=zh)
+
+Speech SDK
+
+语音合成大模型
+
+[双向流式TTS - iOS SDK 接口文档](https://docs.volcengine.com/docs/6561/2586552?lang=zh)
+
+[双向流式TTS - Android SDK 接口文档](https://docs.volcengine.com/docs/6561/2586553?lang=zh)
+
+语音识别大模型
+
+[大模型流式语音识别-iOS SDK接口文档](https://docs.volcengine.com/docs/6561/2604753?lang=zh)
+
+[大模型流式语音识别-Android SDK接口文档](https://docs.volcengine.com/docs/6561/2604754?lang=zh)
+
+端到端实时语音大模型
+
+[端到端-全双工Android SDK文档](https://docs.volcengine.com/docs/6561/2553734?lang=zh)
+
+[端到端-全双工iOS SDK文档](https://docs.volcengine.com/docs/6561/2556358?lang=zh)
+
+自学习平台
+
+[热词](https://docs.volcengine.com/docs/6561/155739?lang=zh)
+
+[热词管理 API v1.1](https://docs.volcengine.com/docs/6561/1742791?lang=zh)
+
+[替换词](https://docs.volcengine.com/docs/6561/1206007?lang=zh)
+
+[替换词 API v1.1](https://docs.volcengine.com/docs/6561/1742792?lang=zh)
+
+[术语词](https://docs.volcengine.com/docs/6561/2306745?lang=zh)
+
+[常见问题](https://docs.volcengine.com/docs/6561/155743?lang=zh)
+
+控制台相关接口
+
+API参考
+
+音色
+
+[ListBigModelTTSTimbres - 大模型音色列表](https://docs.volcengine.com/docs/6561/1770994?lang=zh)
+
+[ListSpeakers - 大模型音色列表(新接口)](https://docs.volcengine.com/docs/6561/2160690?lang=zh)
+
+api_key
+
+[ListAPIKeys - 拉取APIKey列表](https://docs.volcengine.com/docs/6561/1801323?lang=zh)
+
+[CreateAPIKey - 创建APIKey](https://docs.volcengine.com/docs/6561/1801958?lang=zh)
+
+[DeleteAPIKey - 删除APIKey](https://docs.volcengine.com/docs/6561/1801959?lang=zh)
+
+[UpdateAPIKey - 更新APIKey](https://docs.volcengine.com/docs/6561/1801960?lang=zh)
+
+service
+
+[ServiceStatus - 服务状态](https://docs.volcengine.com/docs/6561/1801941?lang=zh)
+
+[PauseService - 暂停服务](https://docs.volcengine.com/docs/6561/1801942?lang=zh)
+
+[ResumeService - 重新启用服务](https://docs.volcengine.com/docs/6561/1801943?lang=zh)
+
+[ActivateService - 开通服务](https://docs.volcengine.com/docs/6561/1801944?lang=zh)
+
+[TerminateService - 停用服务](https://docs.volcengine.com/docs/6561/1801945?lang=zh)
+
+resource_packs
+
+[FormalizeResourcePacks - 转正资源包](https://docs.volcengine.com/docs/6561/1801937?lang=zh)
+
+[ResourcePacksStatus - 资源包状态信息](https://docs.volcengine.com/docs/6561/1801938?lang=zh)
+
+[AliasResourcePack - 更新音色资源别名](https://docs.volcengine.com/docs/6561/1801939?lang=zh)
+
+[OrderResourcePacks - 购买资源包](https://docs.volcengine.com/docs/6561/1801940?lang=zh)
+
+tag
+
+[ListTagsForResources - 查询资源所附加的全部标签](https://docs.volcengine.com/docs/6561/1801949?lang=zh)
+
+[UntagResources - 对资源进行标签移除](https://docs.volcengine.com/docs/6561/1801950?lang=zh)
+
+[TagResources - 对资源进行标签附加](https://docs.volcengine.com/docs/6561/1801951?lang=zh)
+
+声音复刻
+
+[BatchListMegaTTSTrainStatus - 分页查询SpeakerID状态](https://docs.volcengine.com/docs/6561/1801953?lang=zh)
+
+[OrderAccessResourcePacks - 音色下单](https://docs.volcengine.com/docs/6561/1801954?lang=zh)
+
+[RenewAccessResourcePacks - 音色续费](https://docs.volcengine.com/docs/6561/1801955?lang=zh)
+
+[ListMegaTTSByOrderID - 通过订单ID查询购买的音色](https://docs.volcengine.com/docs/6561/1835745?lang=zh)
+
+监控
+
+[QuotaMonitoring - Quota查询接口](https://docs.volcengine.com/docs/6561/1801956?lang=zh)
+
+[UsageMonitoring - 调用量查询接口](https://docs.volcengine.com/docs/6561/1801957?lang=zh)
+
+[API Key使用](https://docs.volcengine.com/docs/6561/1816214?lang=zh)
+
+[QPS/并发查询接口说明](https://docs.volcengine.com/docs/6561/1476626?lang=zh)
+
+[调用量查询接口说明](https://docs.volcengine.com/docs/6561/1476625?lang=zh)
+
+历史文档
+
+语音合成接口
+
+[WebSocket 单向流式-V3](https://docs.volcengine.com/docs/6561/1719100?lang=zh)
+
+[WebSocket 双向流式-V3](https://docs.volcengine.com/docs/6561/1329505?lang=zh)
+
+[HTTP Chunked/SSE单向流式-V3](https://docs.volcengine.com/docs/6561/1598757?lang=zh)
+
+[大模型HTTP非流式接口-V1](https://docs.volcengine.com/docs/6561/1257584?lang=zh)
+
+[WebSocket 单向流式-V1（不推荐）](https://docs.volcengine.com/docs/6561/2228192?lang=zh)
+
+[小模型HTTP非流式接口](https://docs.volcengine.com/docs/6561/79820?lang=zh)
+
+[小模型Websocket接口](https://docs.volcengine.com/docs/6561/79821?lang=zh)
+
+[小模型异步长文本合成接口](https://docs.volcengine.com/docs/6561/1096680?lang=zh)
+
+[小模型音色列表](https://docs.volcengine.com/docs/6561/97465?lang=zh)
+
+语音识别接口
+
+[录音文件识别标准版HTTP](https://docs.volcengine.com/docs/6561/1354868?lang=zh)
+
+[录音文件识别闲时版HTTP](https://docs.volcengine.com/docs/6561/1840838?lang=zh)
+
+[录音文件极速版识别HTTP](https://docs.volcengine.com/docs/6561/1631584?lang=zh)
+
+[一句话识别](https://docs.volcengine.com/docs/6561/80816?lang=zh)
+
+[流式语音识别](https://docs.volcengine.com/docs/6561/80818?lang=zh)
+
+[录音文件识别标准版](https://docs.volcengine.com/docs/6561/80820?lang=zh)
+
+[录音文件识别极速版](https://docs.volcengine.com/docs/6561/192519?lang=zh)
+
+[大模型流式语音识别API](https://docs.volcengine.com/docs/6561/1354869?lang=zh)
+
+音视频字幕接口
+
+产品简介
+
+[产品概述](https://docs.volcengine.com/docs/6561/109885?lang=zh)
+
+[产品优势](https://docs.volcengine.com/docs/6561/109886?lang=zh)
+
+[应用场景](https://docs.volcengine.com/docs/6561/109887?lang=zh)
+
+常见问题
+
+[模型效果FAQ](https://docs.volcengine.com/docs/6561/111579?lang=zh)
+
+[API接入FAQ](https://docs.volcengine.com/docs/6561/111586?lang=zh)
+
+[计费FAQ](https://docs.volcengine.com/docs/6561/114291?lang=zh)
+
+[音视频字幕生成](https://docs.volcengine.com/docs/6561/80909?lang=zh)
+
+[自动字幕打轴](https://docs.volcengine.com/docs/6561/149749?lang=zh)
+
+声音复刻接口
+
+[声音复刻API-V1（不推荐）](https://docs.volcengine.com/docs/6561/1305191?lang=zh)
+
+[声音复刻API-V3](https://docs.volcengine.com/docs/6561/2227958?lang=zh)
+
+SDK接入文档
+
+离在线语音合成SDK
+
+[SDK概览](https://docs.volcengine.com/docs/6561/79827?lang=zh)
+
+[参数说明](https://docs.volcengine.com/docs/6561/79828?lang=zh)
+
+[错误码说明](https://docs.volcengine.com/docs/6561/79829?lang=zh)
+
+[发布信息](https://docs.volcengine.com/docs/6561/79830?lang=zh)
+
+[语音合成 SDK 使用 FAQ](https://docs.volcengine.com/docs/6561/1124300?lang=zh)
+
+Android
+
+[集成指南](https://docs.volcengine.com/docs/6561/79832?lang=zh)
+
+[接入流程](https://docs.volcengine.com/docs/6561/79834?lang=zh)
+
+[常见问题](https://docs.volcengine.com/docs/6561/79838?lang=zh)
+
+模型下发
+
+[模型下发接口说明（V2）](https://docs.volcengine.com/docs/6561/79836?lang=zh)
+
+[模型下发接口说明（V4）](https://docs.volcengine.com/docs/6561/516028?lang=zh)
+
+iOS
+
+[集成指南](https://docs.volcengine.com/docs/6561/79835?lang=zh)
+
+[接入流程](https://docs.volcengine.com/docs/6561/79837?lang=zh)
+
+[常见问题](https://docs.volcengine.com/docs/6561/79840?lang=zh)
+
+模型下发
+
+[模型下发接口说明（V2）](https://docs.volcengine.com/docs/6561/79839?lang=zh)
+
+[模型下发接口说明（V4）](https://docs.volcengine.com/docs/6561/516112?lang=zh)
+
+相关协议
+
+[语音合成SDK隐私政策](https://docs.volcengine.com/docs/6561/116696?lang=zh)
+
+[语音合成 SDK开发者使用合规规范](https://docs.volcengine.com/docs/6561/116711?lang=zh)
+
+流式语音识别 SDK(含一句话)
+
+[发布信息](https://docs.volcengine.com/docs/6561/120573?lang=zh)
+
+[SDK概览](https://docs.volcengine.com/docs/6561/125686?lang=zh)
+
+Android
+
+[集成指南](https://docs.volcengine.com/docs/6561/113641?lang=zh)
+
+[调用流程](https://docs.volcengine.com/docs/6561/113642?lang=zh)
+
+iOS
+
+[集成指南](https://docs.volcengine.com/docs/6561/113643?lang=zh)
+
+[调用流程](https://docs.volcengine.com/docs/6561/113644?lang=zh)
+
+[大模型流式识别SDK](https://docs.volcengine.com/docs/6561/1395846?lang=zh)
+
+[双向流式TTS - iOS SDK 接口文档](https://docs.volcengine.com/docs/6561/1739228?lang=zh)
+
+[双向流式TTS - Android SDK 接口文档](https://docs.volcengine.com/docs/6561/1739229?lang=zh)
+
+端到端实时语音接口
+
+[端到端实时语音大模型API接入文档](https://docs.volcengine.com/docs/6561/1594356?lang=zh)
+
+[端到端iOS SDK 接口文档](https://docs.volcengine.com/docs/6561/1597646?lang=zh)
+
+[端到端Android SDK 接口文档](https://docs.volcengine.com/docs/6561/1597643?lang=zh)
+
+*   文档首页
+![Image 9](blob:http://localhost/e3ac0228ef7a2edea68dbea5857dcdbe)豆包语音![Image 10](blob:http://localhost/e3ac0228ef7a2edea68dbea5857dcdbe)语音识别大模型![Image 11](blob:http://localhost/e3ac0228ef7a2edea68dbea5857dcdbe)流式语音识别![Image 12](blob:http://localhost/e3ac0228ef7a2edea68dbea5857dcdbe)双向流式语音识别WebSocket
+
+![Image 13](blob:http://localhost/81fa16289e8cfd91224d20294cba9e14)复制全文
+
+![Image 14](blob:http://localhost/6f06a55c1ffb61d538ea70c676727ed9)下载 pdf
+
+已收起全部折叠内容
+
+[我的收藏](https://docs.volcengine.com/docs/favorite?lang=zh)
+
+流式语音识别
+
+双向流式语音识别WebSocket
+
+![Image 15](blob:http://localhost/81fa16289e8cfd91224d20294cba9e14)复制全文
+
+![Image 16](blob:http://localhost/6f06a55c1ffb61d538ea70c676727ed9)下载 pdf
+
+已收起全部折叠内容
+
+[我的收藏](https://docs.volcengine.com/docs/favorite?lang=zh)
+
+双向流式语音识别WebSocket
+
+![Image 17](blob:http://localhost/7511cd80c66a21d3576513d5323b9f98)文档反馈
+
+![Image 18](blob:http://localhost/8791860fec2e7731d895208f5ceb1ced)问问助手
+
+支持音频流式输入，实时返回识别结果，实现边说边出字。识别延迟优于单向流式接口，适用于实时会议字幕、直播字幕、智能外呼等低延迟场景​
+
+​
+
+运行依赖文件​
+
+​
+
+Python
+
+Go
+
+​
+
+​
+
+​
+
+​
+
+sauc_python.zip
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)
+
+​
+
+​
+
+​
+
+​
+
+​
+
+sauc_go.zip
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)
+
+​
+
+​
+
+​
+
+​​
+
+POST wss://[openspeech.bytedance.com/api/v3/sauc/bigmodel_async](http://openspeech.bytedance.com/api/v3/sauc/bigmodel_async)​
+
+​
+
+请求头​
+
+X-Api-Key string 必选​
+
+API Key 可从 [控制台>API Key管理](https://console.volcengine.com/speech/new/setting/apikeys?projectName=default.) 获取​
+
+说明​
+
+同时支持[旧版控制台](https://console.volcengine.com/speech/service/10035)的鉴权方式，详见：[旧版控制台鉴权参考示例](https://docs.volcengine.com/docs/6561/2534847?lang=zh)​
+
+​
+
+X-Api-Resource-Id string 必选​
+
+指定请求的模型版本，可选值：​
+
+*   豆包流式语音识别模型2.0 推荐​
+
+*   小时版：volc.seedasr.sauc.duration​
+
+*   并发版：volc.seedasr.sauc.concurrent​
+
+*   豆包流式语音识别模型1.0​
+
+*   小时版：volc.bigasr.sauc.duration​
+
+*   并发版：volc.bigasr.sauc.concurrent ​
+
+​
+
+X-Api-Request-Id string 必选​
+
+任务ID，推荐传入随机生成的UUID​
+
+​
+
+​
+
+请求体​
+
+audio dict 必选​
+
+format string 必选​
+
+指定音频格式。​
+
+可选值：wav / mp3 / ogg / pcm / spx / amr / aac / m4a​
+
+​
+
+codec string​
+
+指定音频编码格式，默认为raw（pcm）​
+
+可选值：raw / opus​
+
+​
+
+rate int​
+
+指定音频采样率，默认值为 16000​
+
+​
+
+bits int​
+
+指定音频采样点位数，默认值为 16​
+
+​
+
+channel int​
+
+指定音频声道数，默认值为 1​
+
+可选值：​
+
+1：mono​
+
+2：stereo​
+
+​
+
+​
+
+request object​
+
+model_name string 必选​
+
+指定模型名称，目前仅支持 bigmodel​
+
+​
+
+enable_nonstream bool​
+
+开启 二遍识别模式，默认为 false。开启后，在双向流式实时识别的基础上，对每个分句额外使用非流式模型（nostream）进行二次识别，提升分句的最终准确率。既满足实时上屏的 “快”, 又保证最终结果的 “准”​
+
+开启后的行为:​
+
+*   自动启用语音活动检测（VAD）进行分句，默认静音时长达到 800ms 判定为一句结束，可通过 end_window_size 参数调整该阈值​
+
+*   每次 VAD 检测到分句结束时，使用非流式模型对该分句音频重新识别​
+
+*   仅非流式模型的二次识别结果会携带 "definite": true 字段，用于标记该分句为最终确定结果​
+
+​
+
+enable_speaker_info bool​
+
+启用说话人分离参数，默认为 false。推荐搭配 豆包流式语音识别模型 2.0 使用​
+
+说明​
+
+开启后需启用 show_utterances 参数，才能获取到说话人分离结果​
+
+​
+
+enable_itn bool​
+
+启用将语音识别结果转换为规范的书面格式，默认为 true​
+
+开启后，系统会将语音里口语化的数字、金额及日期等自动转成阿拉伯数字和符号形式，使文本更简洁、更易读​
+
+效果示例:​
+
+*   "一九七零年" → "1970 年"​
+
+*   "一百二十三美元" → "123 美元"​
+
+​
+
+enable_punc bool​
+
+启用标点，默认为 true​
+
+开启后，系统会在识别结果中添加逗号、句号、问号等标点符号，提升文本可读性​
+
+​
+
+enable_ddc bool​
+
+启用语义顺滑，默认为 false​
+
+开启后，系统会删除或修正识别结果中的停顿词、语气词、语义重复词等不流畅内容，让文本更连贯、更易读​
+
+​
+
+output_zh_variant string​
+
+将识别结果输出为繁体中文。​
+
+可选值：​
+
+*   traditional:简体 → 繁体（大陆）​
+
+*   tw：简体 → 台湾正体​
+
+*   hk：简体 → 香港繁体​
+
+​
+
+*show_utterances bool *启用输出分句、分词、说话人及语音停顿信息，默认为false 
+
+show_utterances bool​
+
+启用输出分句、分词、说话人及语音停顿信息，默认为 false​
+
+​
+
+*show_speech_rate bool *启用分句信息携带语速，默认为false *开启后，系统将在分句 additions 中返回语速信息，单位为 token/s *说明 *开启此参数后，会自动启用语音活动检测（VAD）进行分句，默认静音时长达到 800ms 判定为一句结束，可通过 end_window_size 参数调整该阈值 
+
+show_speech_rate bool​
+
+启用分句信息携带语速，默认为 false​
+
+开启后，系统将在分句 additions 中返回语速信息，单位为 token/s​
+
+说明​
+
+开启此参数后，会自动启用语音活动检测（VAD）进行分句，默认静音时长达到 800ms 判定为一句结束，可通过 end_window_size 参数调整该阈值​
+
+​
+
+*show_volume bool *启用分句信息携带音量，默认 false *开启后，系统将在分句 additions 中返回音量信息，单位为dB *说明 *开启此参数后，会自动启用语音活动检测（VAD）进行分句，默认静音时长达到 800ms 判定为一句结束，可通过 end_window_size 参数调整该阈值 
+
+show_volume bool​
+
+启用分句信息携带音量，默认 false​
+
+开启后，系统将在分句 additions 中返回音量信息，单位为dB​
+
+说明​
+
+开启此参数后，会自动启用语音活动检测（VAD）进行分句，默认静音时长达到 800ms 判定为一句结束，可通过 end_window_size 参数调整该阈值​
+
+​
+
+*enable_lid bool *启用中英文及方言识别，默认 false *支持识别以下语种：中文、英文、上海话、闽南话、四川话、陕西话、粤语 *开启后，系统将在 additions 中返回语种/场景标签，取值如下： *singing_en：英文唱歌 *singing_mand：普通话唱歌 *singing_dia_cant：粤语唱歌 *speech_en：英文说话 *speech_mand：普通话说话 *speech_dia_nan：闽南语 *speech_dia_wuu：吴语（含上海话） *speech_dia_cant：粤语说话 *speech_dia_xina：西南官话（含四川话） *speech_dia_zgyu：中原官话（含陕西话） *other_langs：其它语种（其它语种人声） *others：检测不出（非语义人声和非人声） *返回为空则代表无法判断（例如传入音频过短等） *说明 *开启此参数后，会自动启用语音活动检测（VAD）进行分句，默认静音时长达到 800ms 判定为一句结束，可通过 end_window_size 参数调整该阈值 
+
+enable_lid bool​
+
+启用中英文及方言识别，默认 false​
+
+支持识别以下语种：中文、英文、上海话、闽南话、四川话、陕西话、粤语​
+
+开启后，系统将在 additions 中返回语种/场景标签，取值如下：​
+
+*   singing_en：英文唱歌​
+
+*   singing_mand：普通话唱歌​
+
+*   singing_dia_cant：粤语唱歌​
+
+*   speech_en：英文说话​
+
+*   speech_mand：普通话说话​
+
+*   speech_dia_nan：闽南语​
+
+*   speech_dia_wuu：吴语（含上海话）​
+
+*   speech_dia_cant：粤语说话​
+
+*   speech_dia_xina：西南官话（含四川话）​
+
+*   speech_dia_zgyu：中原官话（含陕西话）​
+
+*   other_langs：其它语种（其它语种人声）​
+
+*   others：检测不出（非语义人声和非人声）​
+
+*   返回为空则代表无法判断（例如传入音频过短等）​
+
+说明​
+
+开启此参数后，会自动启用语音活动检测（VAD）进行分句，默认静音时长达到 800ms 判定为一句结束，可通过 end_window_size 参数调整该阈值​
+
+​
+
+enable_emotion_detection bool​
+
+启用情绪检测，默认为 False​
+
+开启后，系统将在分句 additions 中返回对应的情绪标签。支持的情绪标签如下：​
+
+*   angry：表示情绪为生气​
+
+*   happy：表示情绪为开心​
+
+*   neutral：表示情绪为平静或中性​
+
+*   sad：表示情绪为悲伤​
+
+*   surprise：表示情绪为惊讶​
+
+说明​
+
+开启此参数后，会自动启用语音活动检测（VAD）进行分句，默认静音时长达到 800ms 判定为一句结束，可通过 end_window_size 参数调整该阈值​
+
+​
+
+enable_gender_detection bool​
+
+启用性别检测，默认为 False​
+
+开启后，系统将在分句 additions 中返回性别标签（male/female）​
+
+说明​
+
+开启此参数后，会自动启用语音活动检测（VAD）进行分句，默认静音时长达到 800ms 判定为一句结束，可通过 end_window_size 参数调整该阈值​
+
+​
+
+enable_age_detection bool​
+
+启用年龄检测，默认为 False​
+
+开启后，系统将在分句 additions 中返回说话人的年龄（age），返回值为字符串类型的浮点数​
+
+说明​
+
+年龄检测是模型基于语音特征对说话人年龄做出的估算，结果仅供参考。实际准确率受录音质量、说话语速、及口音等多种因素影响​
+
+​
+
+result_type string​
+
+指定识别结果的返回方式，默认值为 full​
+
+可选值：​
+
+*   full：全量返回​
+
+*   single：增量结果返回，即不返回之前分句的结果​
+
+​
+
+enable_accelerate_text bool​
+
+启用首字返回加速，默认值为 false。​
+
+说明​
+
+启用后将尽量加速首字返回，但同时可能会降低首字准确率，请根据实际场景需要谨慎选择​
+
+​
+
+accelerate_score int​
+
+指定首字返回加速率，默认值为 0，表示不加速。设置的值越大，首字出字越快。​
+
+说明​
+
+该参数需同时开启 enable_accelerate_text 参数​
+
+​
+
+vad_segment_duration int​
+
+指定语义分句的最大静音阈值，默认值为3000，单位为ms。当静音时长超过该值时，识别结果在此处分句​
+
+说明​
+
+*   此参数仅影响语义分句，不触发判停，不改变 definite 返回位置​
+
+*   若同时配置了 end_window_size，此参数不生效​
+
+​
+
+end_window_size int​
+
+指定语音活动检测 (VAD) 的静音判停阈值，默认值为 800，单位 ms。当检测到的连续静音时长达到该值时，则判定一句话结束并触发分句。​
+
+取值范围：[300,5000] ​
+
+推荐值：[800,1000]​
+
+​
+
+force_to_speech_time int​
+
+设置音频流起始阶段强制按有声处理的时长，默认值为 0，单位为 ms​
+
+该参数用于规避音频起始处因静音或弱音导致的过早判停或无法判起问题。设定时长内即使输入为静音也不触发 VAD 判停，超时后恢复正常判停逻辑​
+
+推荐值：1000​
+
+​
+
+sensitive_words_filter string​
+
+启用敏感词过滤功能。开启后，可对识别结果中的敏感词做屏蔽或替换处理​
+
+示例​
+
+​
+
+Bash
+
+复制
+
+"sensitive_words_filter":"{\"system_reserved_filter\":true,\"filter_with_empty\":[\"敏感词\"],\"filter_with_signed\":[\"敏感词\"]}"​
+
+​
+
+system_reserved_filter bool​
+
+启用系统内置敏感词库，默认为 false，启用后，命中的系统敏感词会被替换为 *​
+
+​
+
+filter_with_empty string​
+
+设置需替换为空字符串的自定义敏感词列表​
+
+​
+
+filter_with_signed string​
+
+设置需替换为 * 的自定义敏感词列表​
+
+​
+
+​
+
+enable_poi_fc bool​
+
+启用 POI Function Call，默认为 false，启用后可调用专业的地图领域推荐词服务辅助识别，提高识别准确率​
+
+说明​
+
+使用该能力时，需要将 enable_nonstream 设置为 true​
+
+示例：​
+
+​
+
+SQL
+
+复制
+
+"request": {​
+
+ "enable_poi_fc": true,​
+
+ "corpus": {​
+
+ "context": "{\"loc_info\":{\"city_name\":\"北京市\"}}"​
+
+ }​
+
+}​
+
+​
+
+​
+
+enable_music_fc bool​
+
+启用 Music Function Call，默认为 false，开启后，对于语音识别困难的词语，能调用专业的音乐领域推荐词服务辅助识别​
+
+说明​
+
+使用该能力时，需要将 enable_nonstream 设置为 true​
+
+​
+
+corpus object​
+
+配置语境词典，可自定义配置热词、替换词和上下文信息，配置后可提高特定语境下的词语识别准确率​
+
+说明​
+
+*   上下文与热词（含直传热词与热词表热词）最大支持上传100 tokens。当上传的总长度超过 100 tokens 时，系统按传入顺序从前向后截断，仅前 100 tokens 内的内容生效；开启 enable_nonstream 参数时，支持情况请参考[单向流式语音识别接口](https://docs.volcengine.com/docs/6561/2628951?lang=zh)文档中 corpus 对应的描述​
+
+*   热词属于提示性参数，用于引导模型优先识别特定词汇，但并非强制约束。模型会在识别过程中优先考虑热词，但受语音清晰度、语境等多种因素影响，不保证所有热词都能 100% 正确转写​
+
+*   热词的效果和选词、数量、格式都有关，为达到最佳效果建议根据[热词与上下文最佳实践](https://docs.volcengine.com/docs/6561/2604976?lang=zh)配置热词和上下文信息​
+
+boosting_table_name string​
+
+热词词表名称，可在[控制台>自学习平台](https://console.volcengine.com/speech/new/hot-word?projectName=default)配置热词后获取​
+
+​
+
+boosting_table_id string​
+
+热词词表id，可在[控制台>自学习平台](https://console.volcengine.com/speech/new/hot-word?projectName=default)配置热词后获取​
+
+说明​
+
+若传入的 boosting_table_name 和 boosting_table_id 对应的热词词表不一致，则以 boosting_table_id 为准​
+
+​
+
+correct_table_name string​
+
+替换词词表名称，可在[控制台>自学习平台](https://console.volcengine.com/speech/new/correct-word?projectName=default)配置替换词后获取。配置后，可将模型识别出的特定词汇替换为目标词汇​
+
+​
+
+correct_table_id string​
+
+替换词词表id，可在[控制台>自学习平台](https://console.volcengine.com/speech/new/correct-word?projectName=default)配置替换词后获取。配置后，可将模型识别出的特定词汇替换为目标词汇​
+
+说明​
+
+若传入的 correct_table_name 和 correct_table_id 对应的热词词表不一致，则以 correct_table_id 为准​
+
+​
+
+regex_correct_table_name string​
+
+正则替换词表名称，可在[控制台>自学习平台](https://console.volcengine.com/speech/new/correct-word?projectName=default)配置正则替换词后获取。相较于替换词的精确匹配替换，正则替换词适合批量格式转换（如日期格式统一、符号标准化）、模糊模式匹配等复杂场景​
+
+​
+
+regex_correct_table_id string​
+
+正则替换词表id，可在[控制台>自学习平台](https://console.volcengine.com/speech/new/correct-word?projectName=default)配置正则替换词后获取。相较于替换词的精确匹配替换，正则替换词适合批量格式转换（如日期格式统一、符号标准化）、模糊模式匹配等复杂场景​
+
+​
+
+context string​
+
+上下文功能。在识别请求中传入辅助上下文信息，帮助模型结合语境提升识别准确率。支持传入热词、对话历史、场景描述等多种类型的上下文信息​
+
+说明​
+
+*   实际传参时 context 需序列化为 JSON 字符串传入，如："context": "{\"hotwords\":[{\"word\":\"自定义热词A\"},,\"context_type\":\"dialog_ctx\",\"context_data\":[{\"speaker\":\"bot\",\"text\":\"最近一轮助手的回答\"}"​
+
+*   识别效果与热词的选词策略、上下文信息有关，为达到最佳效果建议根据[热词与上下文最佳实践](https://docs.volcengine.com/docs/6561/2604976?lang=zh)配置热词和上下文信息​
+
+示例：​
+
+​
+
+Python
+
+复制
+
+{​
+
+"hotwords": [​
+
+ { "word": "自定义热词A" },​
+
+ { "word": "自定义热词B" },​
+
+ { "word": "自定义热词C" }​
+
+ ],​
+
+"context_type": "dialog_ctx",​
+
+"context_data": [​
+
+ {​
+
+"speaker": "user",​
+
+"text": "你能帮我查一下资料吗？"​
+
+ },​
+
+ {​
+
+"speaker": "bot",​
+
+"text": "当然可以，请问您需要查什么资料？"​
+
+ },​
+
+ {​
+
+"speaker": "user",​
+
+"text": "帮我查一下最新的汽车资讯。"​
+
+ },​
+
+ {​
+
+"speaker": "bot",​
+
+"text": "好的，正在为您查找相关的汽车资讯。"​
+
+ }​
+
+ ]​
+
+}​
+
+​
+
+Hotwords string​
+
+热词列表直传，用于提升指定词汇的识别准确率。​
+
+word string​
+
+热词内容​
+
+说明​
+
+*   上下文与热词（含直传热词与热词表热词）最大支持上传100 tokens。当上传的总长度超过 100 tokens 时，系统按传入顺序从前向后截断，仅前 100 tokens 内的内容生效；开启 enable_nonstream 参数时，支持情况请参考[单向流式语音识别接口](https://docs.volcengine.com/docs/6561/2628951?lang=zh)文档中 corpus 对应的描述​
+
+*   热词属于提示性参数，用于引导模型优先识别特定词汇，但并非强制约束。模型会在识别过程中优先考虑热词，但受语音清晰度、语境等多种因素影响，不保证所有热词都能 100% 正确转写​
+
+*   识别效果与热词的选词策略、上下文信息有关，为达到最佳效果建议根据[热词与上下文最佳实践](https://docs.volcengine.com/docs/6561/2604976?lang=zh)配置热词和上下文信息​
+
+​
+
+​
+
+context_type string​
+
+上下文类型，目前仅支持 dialog_ctx​
+
+​
+
+context_data object​
+
+上下文数据列表，用于传入历史对话等语境信息，需同时配置 context_type​
+
+text string​
+
+历史对话文本，帮助模型理解语境，提升识别准确率​
+
+​
+
+image_url string​
+
+图片 URL，用于提供视觉上下文，辅助理解语音内容​
+
+说明​
+
+*   仅当开启 enable_nonstream 参数时，支持上传图片 URL​
+
+*   仅豆包流式语音识别模型 2.0 支持图片输入。当前限制：最多传入 1 张图片，单张大小不超过 500 KB，支持格式为 jpeg /jpg/png​
+
+​
+
+​
+
+​
+
+​
+
+​
+
+​
+
+*响应 * * * * * * *code int *请求状态码。0 表示识别成功，非 0 表示识别失败 *event int *会话事件类型标识 *is_last_package bool *是否为最后一个响应包。true 表示识别结果已全部返回 *payload_sequence int *响应数据包的序号 *payload_size int *响应数据 payload 的字节大小 *payload_msg object *响应数据主体，包含音频信息与识别结果 * * *audio_info object *音频相关信息 * *duration int *音频时长，单位为毫秒（ms） *result list *识别结果，识别成功后返回 * * * *additions object * *log_id string *服务端返回的 logid，方便定位问题 *text string *音频识别结果文本，识别成功后返回 *utterances list *语音分句信息。满足以下条件时返回： *请求参数show_utterances设置为true *识别成功 * * * * * * *definite bool *当前分句结果是否为最终确定结果。true 表示该分句不再变化 *additions string * * * *fixed_prefix_result string *已确定的前缀识别结果 *source string *分句结果来源 *speaker_id string *说话人 ID。开启说话人分离 enable_speaker_info=true后返回 *textstring *分句文本内容 *end_time int *分句结束时间戳（毫秒） *start_timeint *分句起始时间戳（毫秒） *words list *分词信息列表。请求参数show_utterances设置为true且识别成功时返回 * * * *start_time int *起始时间（毫秒） *end_time int *结束时间（毫秒） *text string *语音文本内容。满足以下条件时返回： *请求参数show_utterances设置为true *识别成功 
+
+响应​
+
+code int​
+
+请求状态码。0 表示识别成功，非 0 表示识别失败​
+
+​
+
+event int​
+
+会话事件类型标识​
+
+​
+
+is_last_package bool​
+
+是否为最后一个响应包。true 表示识别结果已全部返回​
+
+​
+
+payload_sequence int​
+
+响应数据包的序号​
+
+​
+
+payload_size int​
+
+响应数据 payload 的字节大小​
+
+​
+
+payload_msg object​
+
+响应数据主体，包含音频信息与识别结果​
+
+*audio_info object *音频相关信息 * *duration int *音频时长，单位为毫秒（ms） 
+
+audio_info object​
+
+音频相关信息​
+
+duration int​
+
+音频时长，单位为毫秒（ms）​
+
+​
+
+​
+
+result list​
+
+识别结果，识别成功后返回​
+
+*additions object * *log_id string *服务端返回的 logid，方便定位问题 
+
+additions object​
+
+log_id string​
+
+服务端返回的 logid，方便定位问题​
+
+​
+
+​
+
+*text string *音频识别结果文本，识别成功后返回 
+
+text string​
+
+音频识别结果文本，识别成功后返回​
+
+​
+
+utterances list​
+
+语音分句信息。满足以下条件时返回：​
+
+*   请求参数 show_utterances 设置为 true​
+
+*   识别成功​
+
+*definite bool *当前分句结果是否为最终确定结果。true 表示该分句不再变化 
+
+definite bool​
+
+当前分句结果是否为最终确定结果。true 表示该分句不再变化​
+
+​
+
+additions string​
+
+fixed_prefix_result string​
+
+已确定的前缀识别结果​
+
+​
+
+source string​
+
+分句结果来源​
+
+​
+
+speaker_id string​
+
+说话人 ID。开启说话人分离 enable_speaker_info=true 后返回​
+
+​
+
+​
+
+text string​
+
+分句文本内容​
+
+​
+
+end_time int​
+
+分句结束时间戳（毫秒）​
+
+​
+
+start_time int​
+
+分句起始时间戳（毫秒）​
+
+​
+
+words list​
+
+分词信息列表。请求参数 show_utterances 设置为 true 且识别成功时返回​
+
+start_time int​
+
+起始时间（毫秒）​
+
+​
+
+end_time int​
+
+结束时间（毫秒）​
+
+​
+
+text string​
+
+语音文本内容。满足以下条件时返回：​
+
+*   请求参数 show_utterances 设置为 true​
+
+*   识别成功​
+
+​
+
+​
+
+​
+
+​
+
+​
+
+​
+
+​
+
+​
+
+​
+
+Python
+
+Go
+
+输入示例
+
+```
+import asyncio
+import json
+import protocol
+import argparse
+
+async def main():
+    parser = argparse.ArgumentParser(description="ASR WebSocket Client")
+    parser.add_argument("--file", type=str,
+                        default="<your_file_path>",
+                        help="Audio file path")
+    parser.add_argument("--url", type=str, default="wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async",
+                        help="WebSocket URL")
+    parser.add_argument("--seg-duration", type=int, default=200,
+                        help="Audio duration(ms) per packet, default:200")
+    parser.add_argument("--api_key", type=str, default="<your_api_key>",
+                        help="API key for authorization (new console auth, X-Api-Key)")
+    parser.add_argument("--app_key", type=str, default="",
+                        help="App key (legacy console auth, used with access_key)")
+    parser.add_argument("--access_key", type=str, default="",
+                        help="Access key for authorization (legacy console auth, used with app_key)")
+    parser.add_argument("--resource_id", type=str, default="volc.seedasr.sauc.duration",
+                        help="X-Api-Resource-Id")
+
+    args = parser.parse_args()
+    if not args.api_key and (not args.app_key or not args.access_key):
+        raise ValueError("auth required: provide --api_key, or --app_key + --access_key")
+
+    config = protocol.Config(
+        api_key=args.api_key,
+        app_key=args.app_key,
+        access_key=args.access_key,
+        resource_id=args.resource_id,
+    )
+    payload = {
+        "audio": {
+            "format": "wav",
+            "codec": "raw",
+            "rate": 16000,
+            "bits": 16,
+            "channel": 1
+        },
+        "request": {
+            "model_name": "bigmodel",
+            "enable_itn": True,
+            "enable_punc": True,
+            "enable_ddc": True,
+            "show_utterances": True,
+            "enable_nonstream": False
+        }
+    }
+    async with protocol.AsrWsClient(args.url, args.seg_duration) as client:  # 使用async with
+        try:
+            async for response in client.execute(args.file,config,payload):
+                protocol.logger.info(f"Received response: {json.dumps(response.to_dict(), indent=2, ensure_ascii=False)}")
+        except Exception as e:
+            protocol.logger.error(f"ASR processing failed: {e}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+输出示例
+
+```
+{
+  "code": 0,
+  "event": 0,
+  "is_last_package": true,
+  "payload_sequence": 42,
+  "payload_size": 2631,
+  "payload_msg": {
+    "audio_info": {
+      "duration": 8040
+    },
+    "result": {
+      "additions": {
+        "log_id": "20260810152426979947089E61DF8235A3"
+      },
+      "text": "您好，我是您的 AI 助手。",
+      "utterances": [
+        {
+          "additions": {
+            "fixed_prefix_result": "",
+            "source": "stream",
+            "speaker_id": "0"
+          },
+          "definite": true,
+          "end_time": 2000,
+          "start_time": 280,
+          "text": "您好，我是您的 AI 助手。",
+          "words": [
+            { "end_time": 360, "start_time": 280, "text": "您" },
+            { "end_time": 680, "start_time": 360, "text": "好" },
+            { "end_time": 880, "start_time": 680, "text": "我" },
+            { "end_time": 1040, "start_time": 880, "text": "是" },
+            { "end_time": 1160, "start_time": 1040, "text": "您" },
+            { "end_time": 1320, "start_time": 1160, "text": "的" },
+            { "end_time": 1520, "start_time": 1360, "text": "AI" },
+            { "end_time": 1800, "start_time": 1600, "text": "助" },
+            { "end_time": 2000, "start_time": 1800, "text": "手" }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+最近更新时间：2026.09.11 14:20:56
+
+这个页面对您有帮助吗？
+
+有用
+
+有用
+
+无用
+
+无用
+
+[上一篇： 单向流式语音识别WebSocket](https://docs.volcengine.com/docs/6561/2628951?lang=zh)[接入必读 下一篇](https://docs.volcengine.com/docs/6561/2678884?lang=zh)
+
+![Image 19](https://portal.volccdn.com/obj/volcfe-scm/doccenter/static/image/volc_turn_left.71144966.693e9bc6.gif)![Image 20](https://portal.volccdn.com/obj/volcfe-scm/doccenter/static/image/volc_turn_right.7d0d6e06.70c40585.gif)![Image 21](blob:http://localhost/d8a0209f49b61532ab3e4eb7b42835fa)![Image 22](blob:http://localhost/0b72d9d721373c027cdf9364180d111d)![Image 23](https://portal.volccdn.com/obj/volcfe-scm/doccenter/static/image/volc_wink.c9c864d8.5ee7995c.gif)
+
+![Image 24](https://res.volccdn.com/obj/volc-console-fe/vcopilot-entry/web/static/resource/260202/icon-idle-v2.webp)
+
+在线咨询
+
+鼠标选中内容，快速反馈问题
+
+选中存在疑惑的内容，即可快速反馈问题，我们将会跟进处理
+
+不再提示
+
+好的，知道了
+
+文档反馈
+
+火山助手
+
+购买咨询
+
+![Image 25](https://portal.volccdn.com/obj/volcfe/bee_prod/biz_950/tos_0266465c21769b871b928460d4ae1b2f.svg)
+
+全天候售后服务
+
+7x24小时专业工程师品质服务
+
+![Image 26](https://portal.volccdn.com/obj/volcfe/bee_prod/biz_950/tos_590497115f37741295850c30dd34d2a0.svg)
+
+极速服务应答
+
+秒级应答为业务保驾护航
+
+![Image 27](https://portal.volccdn.com/obj/volcfe/bee_prod/biz_950/tos_4a7bb8f8e14a5172d1c44233706e04dc.svg)
+
+客户价值为先
+
+从服务价值到创造客户价值
+
+![Image 28](https://portal.volccdn.com/obj/volcfe/bee_prod/biz_950/tos_df64314569745f0f59920a51144381e2.svg)
+
+全方位安全保障
+
+打造一朵“透明可信”的云
+
+![Image 29](https://portal.volccdn.com/obj/volcfe/bee_prod/biz_950/tos_0266465c21769b871b928460d4ae1b2f.svg)
+
+全天候售后服务
+
+![Image 30](https://portal.volccdn.com/obj/volcfe/bee_prod/biz_950/tos_590497115f37741295850c30dd34d2a0.svg)
+
+极速服务应答
+
+![Image 31](https://portal.volccdn.com/obj/volcfe/bee_prod/biz_950/tos_4a7bb8f8e14a5172d1c44233706e04dc.svg)
+
+客户价值为先
+
+![Image 32](https://portal.volccdn.com/obj/volcfe/bee_prod/biz_950/tos_df64314569745f0f59920a51144381e2.svg)
+
+全方位安全保障
+
+[![Image 33: logo](https://lf3-static.bytednsdoc.com/obj/eden-cn/shayvw_lmjsvc/ljhwZthlaukjlkulzlp/logo-theme-light.svg)](https://www.volcengine.com/)
+
+关于我们
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[为什么选火山](https://www.volcengine.com/about)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[文档中心](https://www.volcengine.com/docs)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[联系我们](https://www.volcengine.com/product/contact)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[人才招聘](https://www.volcengine.com/jobs)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[云信任中心](https://www.volcengine.com/product/trust)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[友情链接](https://www.volcengine.com/friend_links)
+
+产品
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[云服务器](https://www.volcengine.com/product/ecs)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[GPU云服务器](https://www.volcengine.com/product/gpu)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[机器学习平台](https://www.volcengine.com/product/ml-platform)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[客户数据平台 VeCDP](https://www.volcengine.com/product/veCDP)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[飞连](https://www.volcengine.com/product/feilian)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[视频直播](https://www.volcengine.com/product/live)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[全部产品](https://www.volcengine.com/product/list)
+
+解决方案
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[汽车行业](https://www.volcengine.com/solutions/automotive)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[金融行业](https://www.volcengine.com/solutions/finance)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[文娱行业](https://www.volcengine.com/solutions/social)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[医疗健康行业](https://www.volcengine.com/solutions/Bio-OS-genomics)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[传媒行业](https://www.volcengine.com/solutions/smart-media)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[智慧文旅](https://www.volcengine.com/solutions/cultural-tourism-group)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[大消费](https://www.volcengine.com/solutions/GeneralConsumption)
+
+服务与支持
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[备案服务](https://www.volcengine.com/beian)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[服务咨询](https://www.volcengine.com/contact/product)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[建议与反馈](https://console.volcengine.com/workorder/create?step=3&SubProductID=P90000696&FlowKey=RvTCxYTCdeIhAKMzebqS)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[廉洁舞弊举报](https://compliance.bytedance.com/report/pcReport)
+
+[](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[举报平台](https://www.volcengine.com/product/report-platform)
+
+联系我们
+
+[业务咨询：](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[service@volcengine.com](mailto:service@volcengine.com)
+
+[市场合作：](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[marketing@volcengine.com](mailto:marketing@volcengine.com)
+
+[电话：](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[400-034-7888](tel://400-034-7888)
+
+[地址：](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[北京市海淀区北三环西路甲18号院大钟寺广场1号楼](https://docs.volcengine.com/docs/6561/2630027?lang=zh)
+
+![Image 34](https://portal.volccdn.com/obj/volcfe/footer/shipinhao.jpeg)
+
+[微信公众号](https://docs.volcengine.com/docs/6561/2630027?lang=zh)
+
+![Image 35](https://portal.volccdn.com/obj/volcfe/footer/douyinhao.jpeg)
+
+[抖音号](https://docs.volcengine.com/docs/6561/2630027?lang=zh)
+
+![Image 36](https://portal.volccdn.com/obj/volcfe/footer/gongzhonghao.jpeg)
+
+[视频号](https://docs.volcengine.com/docs/6561/2630027?lang=zh)
+
+关于我们
+
+[为什么选火山](https://www.volcengine.com/about)[文档中心](https://www.volcengine.com/docs)[联系我们](https://www.volcengine.com/product/contact)[人才招聘](https://www.volcengine.com/jobs)[云信任中心](https://www.volcengine.com/product/trust)[友情链接](https://www.volcengine.com/friend_links)
+
+产品
+
+[云服务器](https://www.volcengine.com/product/ecs)[GPU云服务器](https://www.volcengine.com/product/gpu)[机器学习平台](https://www.volcengine.com/product/ml-platform)[客户数据平台 VeCDP](https://www.volcengine.com/product/veCDP)[飞连](https://www.volcengine.com/product/feilian)[视频直播](https://www.volcengine.com/product/live)[全部产品](https://www.volcengine.com/product/list)
+
+解决方案
+
+[汽车行业](https://www.volcengine.com/solutions/automotive)[金融行业](https://www.volcengine.com/solutions/finance)[文娱行业](https://www.volcengine.com/solutions/social)[医疗健康行业](https://www.volcengine.com/solutions/Bio-OS-genomics)[传媒行业](https://www.volcengine.com/solutions/smart-media)[智慧文旅](https://www.volcengine.com/solutions/cultural-tourism-group)[大消费](https://www.volcengine.com/solutions/GeneralConsumption)
+
+服务与支持
+
+[备案服务](https://www.volcengine.com/beian)[服务咨询](https://www.volcengine.com/contact/product)[建议与反馈](https://console.volcengine.com/workorder/create?step=3&SubProductID=P90000696&FlowKey=RvTCxYTCdeIhAKMzebqS)[廉洁舞弊举报](https://compliance.bytedance.com/report/pcReport)[举报平台](https://www.volcengine.com/product/report-platform)
+
+联系我们
+
+业务咨询：[service@volcengine.com](mailto:service@volcengine.com)
+
+市场合作：[marketing@volcengine.com](mailto:marketing@volcengine.com)
+
+电话：[400-034-7888](tel://400-034-7888)
+
+地址：[北京市海淀区北三环西路甲18号院大钟寺广场1号楼](https://docs.volcengine.com/docs/6561/2630027?lang=zh)
+
+![Image 37](https://portal.volccdn.com/obj/volcfe/footer/shipinhao.jpeg)
+
+[微信公众号](https://docs.volcengine.com/docs/6561/2630027?lang=zh)
+
+![Image 38](https://portal.volccdn.com/obj/volcfe/footer/douyinhao.jpeg)
+
+[抖音号](https://docs.volcengine.com/docs/6561/2630027?lang=zh)
+
+![Image 39](https://portal.volccdn.com/obj/volcfe/footer/gongzhonghao.jpeg)
+
+[视频号](https://docs.volcengine.com/docs/6561/2630027?lang=zh)
+
+[服务条款](https://www.volcengine.com/docs/6256/64903)[隐私政策](https://www.volcengine.com/docs/6256/64902)[更多协议](https://www.volcengine.com/docs/6256/68938)
+
+[© 北京火山引擎科技有限公司 2026 版权所有](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[代理域名注册服务机构：新网数码 商中在线](https://docs.volcengine.com/docs/6561/2630027?lang=zh)![Image 40](https://portal.volccdn.com/obj/volcfe/footer/national_emblem.png)[京公网安备11010802032137号](https://beian.mps.gov.cn/#/query/webSearch?code=11010802032137)[京ICP备20018813号-3](https://beian.miit.gov.cn/)[营业执照](https://www.volcengine.com/business_license)[增值电信业务经营许可证京B2-20202418，A2.B1.B2-20202637](https://dxzhgl.miit.gov.cn/#/home)[网络文化经营许可证：京网文（2023）4872-140号](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[域名注册服务机构许可：京D3-20250002](https://domain.miit.gov.cn/%E5%9F%9F%E5%90%8D%E6%B3%A8%E5%86%8C%E6%9C%8D%E5%8A%A1%E6%9C%BA%E6%9E%84/%E4%BA%92%E8%81%94%E7%BD%91%E5%9F%9F%E5%90%8D/%E5%8C%97%E4%BA%AC%E7%81%AB%E5%B1%B1%E5%BC%95%E6%93%8E%E7%A7%91%E6%8A%80%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8)
+
+[© 北京火山引擎科技有限公司 2026 版权所有](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[代理域名注册服务机构：新网数码 商中在线](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[服务条款](https://www.volcengine.com/docs/6256/64903)[隐私政策](https://www.volcengine.com/docs/6256/64902)[更多协议](https://www.volcengine.com/docs/6256/68938)
+
+![Image 41](https://portal.volccdn.com/obj/volcfe/footer/national_emblem.png)[京公网安备11010802032137号](https://beian.mps.gov.cn/#/query/webSearch?code=11010802032137)[京ICP备20018813号-3](https://beian.miit.gov.cn/)[营业执照](https://www.volcengine.com/business_license)[增值电信业务经营许可证京B2-20202418，A2.B1.B2-20202637](https://dxzhgl.miit.gov.cn/#/home)[网络文化经营许可证：京网文（2023）4872-140号](https://docs.volcengine.com/docs/6561/2630027?lang=zh)[域名注册服务机构许可：京D3-20250002](https://domain.miit.gov.cn/%E5%9F%9F%E5%90%8D%E6%B3%A8%E5%86%8C%E6%9C%8D%E5%8A%A1%E6%9C%BA%E6%9E%84/%E4%BA%92%E8%81%94%E7%BD%91%E5%9F%9F%E5%90%8D/%E5%8C%97%E4%BA%AC%E7%81%AB%E5%B1%B1%E5%BC%95%E6%93%8E%E7%A7%91%E6%8A%80%E6%9C%89%E9%99%90%E5%85%AC%E5%8F%B8)
+
+业务咨询
+
+rangeDom

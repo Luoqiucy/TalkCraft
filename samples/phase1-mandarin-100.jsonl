@@ -1,0 +1,100 @@
+{"id":"schedule-001","reference":"今天下午3点召开项目评审，请提前10分钟到会议室。","audio":"audio/schedule-001.wav"}
+{"id":"schedule-002","reference":"明天上午9点半不要安排其他会议。","audio":"audio/schedule-002.wav"}
+{"id":"schedule-003","reference":"把周五的演示改到下周一下午2点。","audio":"audio/schedule-003.wav"}
+{"id":"schedule-004","reference":"会议不是4点开始，而是4点30分开始。","audio":"audio/schedule-004.wav"}
+{"id":"schedule-005","reference":"请在2026年9月18日前提交最终方案。","audio":"audio/schedule-005.wav"}
+{"id":"schedule-006","reference":"本周三上午10点与供应商进行第2轮沟通。","audio":"audio/schedule-006.wav"}
+{"id":"schedule-007","reference":"午休时间不要超过1小时，下午1点继续测试。","audio":"audio/schedule-007.wav"}
+{"id":"schedule-008","reference":"提醒我晚上8点给王经理回复邮件。","audio":"audio/schedule-008.wav"}
+{"id":"schedule-009","reference":"第3次联调暂时取消，不要通知外部客户。","audio":"audio/schedule-009.wav"}
+{"id":"schedule-010","reference":"把15分钟的讨论延长到25分钟。","audio":"audio/schedule-010.wav"}
+{"id":"finance-011","reference":"这批设备预算是1200元，不包含运费。","audio":"audio/finance-011.wav"}
+{"id":"finance-012","reference":"报价从899元调整为869元。","audio":"audio/finance-012.wav"}
+{"id":"finance-013","reference":"本月费用没有超过5000元。","audio":"audio/finance-013.wav"}
+{"id":"finance-014","reference":"请核对发票号码310245和金额2688.50元。","audio":"audio/finance-014.wav"}
+{"id":"finance-015","reference":"首付款为30%，尾款为70%。","audio":"audio/finance-015.wav"}
+{"id":"finance-016","reference":"不要把12万元写成120万元。","audio":"audio/finance-016.wav"}
+{"id":"finance-017","reference":"库存还剩48台，其中7台不能发货。","audio":"audio/finance-017.wav"}
+{"id":"finance-018","reference":"合同总价是3.6万元，税率为6%。","audio":"audio/finance-018.wav"}
+{"id":"finance-019","reference":"本次退款不是299元，而是2999元。","audio":"audio/finance-019.wav"}
+{"id":"finance-020","reference":"账户余额低于1000元时不要自动续费。","audio":"audio/finance-020.wav"}
+{"id":"negative-021","reference":"不要删除原始录音，也不要覆盖已有文字。","audio":"audio/negative-021.wav"}
+{"id":"negative-022","reference":"当前没有连接无线麦克风。","audio":"audio/negative-022.wav"}
+{"id":"negative-023","reference":"这个结果不是最终版本，暂时不能发布。","audio":"audio/negative-023.wav"}
+{"id":"negative-024","reference":"未获得授权时不得上传音频。","audio":"audio/negative-024.wav"}
+{"id":"negative-025","reference":"我不需要长篇解释，只要3条结论。","audio":"audio/negative-025.wav"}
+{"id":"negative-026","reference":"请勿关闭窗口，也别清空输入内容。","audio":"audio/negative-026.wav"}
+{"id":"negative-027","reference":"没有检测到有效语音，不代表麦克风损坏。","audio":"audio/negative-027.wav"}
+{"id":"negative-028","reference":"这次更新不会自动安装，也不会重启电脑。","audio":"audio/negative-028.wav"}
+{"id":"negative-029","reference":"不要使用模拟结果冒充真实识别。","audio":"audio/negative-029.wav"}
+{"id":"negative-030","reference":"网络中断后不能丢失已经编辑的文本。","audio":"audio/negative-030.wav"}
+{"id":"technical-031","reference":"ESP32-S3通过Wi-Fi发送16kHz单声道音频。","audio":"audio/technical-031.wav"}
+{"id":"technical-032","reference":"WebSocket连接超时设置为30秒。","audio":"audio/technical-032.wav"}
+{"id":"technical-033","reference":"API返回HTTP 504时保留本地WAV文件。","audio":"audio/technical-033.wav"}
+{"id":"technical-034","reference":"DeepSeek模型与ASR服务必须独立配置。","audio":"audio/technical-034.wav"}
+{"id":"technical-035","reference":"Ollama失败后不要自动切换到云端。","audio":"audio/technical-035.wav"}
+{"id":"technical-036","reference":"采样格式是16bit PCM，不是24bit PCM。","audio":"audio/technical-036.wav"}
+{"id":"technical-037","reference":"设备编号、会话编号和事件序号都不能重复。","audio":"audio/technical-037.wav"}
+{"id":"technical-038","reference":"固件使用AES-256 GCM保护本地配置。","audio":"audio/technical-038.wav"}
+{"id":"technical-039","reference":"请检查JSON字段resourceId是否正确。","audio":"audio/technical-039.wav"}
+{"id":"technical-040","reference":"本次延迟为1820毫秒，目标不超过5000毫秒。","audio":"audio/technical-040.wav"}
+{"id":"terms-041","reference":"TalkCraft的按键A用于听写整理。","audio":"audio/terms-041.wav"}
+{"id":"terms-042","reference":"按键B用于Quick Q&A即时问答。","audio":"audio/terms-042.wav"}
+{"id":"terms-043","reference":"按键C默认执行中英文翻译。","audio":"audio/terms-043.wav"}
+{"id":"terms-044","reference":"按键D用于Prompt Optimizer提示词整理。","audio":"audio/terms-044.wav"}
+{"id":"terms-045","reference":"请把深度求索统一写成DeepSeek-V3。","audio":"audio/terms-045.wav"}
+{"id":"terms-046","reference":"把扑味吐托克纠正为Push-to-Talk。","audio":"audio/terms-046.wav"}
+{"id":"terms-047","reference":"协议联调翻译为protocol integration。","audio":"audio/terms-047.wav"}
+{"id":"terms-048","reference":"Windows Credential Manager不保存原始音频。","audio":"audio/terms-048.wav"}
+{"id":"terms-049","reference":"macOS Keychain权限尚未完成验收。","audio":"audio/terms-049.wav"}
+{"id":"terms-050","reference":"Figma节点2:3989对应听写工作台。","audio":"audio/terms-050.wav"}
+{"id":"logistics-051","reference":"请把2箱样机寄到北京市海淀区中关村大街27号。","audio":"audio/logistics-051.wav"}
+{"id":"logistics-052","reference":"收件人是李晓明，电话尾号为6628。","audio":"audio/logistics-052.wav"}
+{"id":"logistics-053","reference":"快递单号SF1234567890还没有更新。","audio":"audio/logistics-053.wav"}
+{"id":"logistics-054","reference":"A仓库有18台，B仓库有26台。","audio":"audio/logistics-054.wav"}
+{"id":"logistics-055","reference":"不要把上海浦东写成上海浦西。","audio":"audio/logistics-055.wav"}
+{"id":"logistics-056","reference":"第5批物料预计周四上午到达。","audio":"audio/logistics-056.wav"}
+{"id":"logistics-057","reference":"地址中的3号楼和8层都不能省略。","audio":"audio/logistics-057.wav"}
+{"id":"logistics-058","reference":"请在箱外标注易碎物品，禁止倒置。","audio":"audio/logistics-058.wav"}
+{"id":"logistics-059","reference":"接收器和麦克风必须分别贴上序列号。","audio":"audio/logistics-059.wav"}
+{"id":"logistics-060","reference":"样机重量约320克，不含充电线。","audio":"audio/logistics-060.wav"}
+{"id":"office-061","reference":"请告诉团队，今天的评审改到下午3点。","audio":"audio/office-061.wav"}
+{"id":"office-062","reference":"邮件主题写项目延期说明，不要写紧急通知。","audio":"audio/office-062.wav"}
+{"id":"office-063","reference":"请把会议结论整理成4个要点。","audio":"audio/office-063.wav"}
+{"id":"office-064","reference":"客户没有确认交付日期，暂时不要承诺。","audio":"audio/office-064.wav"}
+{"id":"office-065","reference":"这份文档只发给研发组，不发给外部人员。","audio":"audio/office-065.wav"}
+{"id":"office-066","reference":"请在Slack的project-alpha频道同步进度。","audio":"audio/office-066.wav"}
+{"id":"office-067","reference":"Word文档第12页有2处需要修改。","audio":"audio/office-067.wav"}
+{"id":"office-068","reference":"VS Code中的配置文件不能提交密钥。","audio":"audio/office-068.wav"}
+{"id":"office-069","reference":"请回复收到，我们会在24小时内处理。","audio":"audio/office-069.wav"}
+{"id":"office-070","reference":"本周完成了录音、转写和文字整理3项功能。","audio":"audio/office-070.wav"}
+{"id":"mixed-071","reference":"OpenAI模型名称填写gpt-5，不要填写网页账户名称。","audio":"audio/mixed-071.wav"}
+{"id":"mixed-072","reference":"DeepSeek API Key只保存在本机配置文件中。","audio":"audio/mixed-072.wav"}
+{"id":"mixed-073","reference":"Ollama地址是127.0.0.1端口11434。","audio":"audio/mixed-073.wav"}
+{"id":"mixed-074","reference":"HTTP状态码400表示请求参数可能有误。","audio":"audio/mixed-074.wav"}
+{"id":"mixed-075","reference":"Wi-Fi信号为负55dBm时显示4格。","audio":"audio/mixed-075.wav"}
+{"id":"mixed-076","reference":"蓝牙版本5.3不代表音频延迟低于2毫秒。","audio":"audio/mixed-076.wav"}
+{"id":"mixed-077","reference":"USB-C接收器当前没有连接。","audio":"audio/mixed-077.wav"}
+{"id":"mixed-078","reference":"JSONL文件必须恰好包含100行。","audio":"audio/mixed-078.wav"}
+{"id":"mixed-079","reference":"P95延迟目标是不超过5秒。","audio":"audio/mixed-079.wav"}
+{"id":"mixed-080","reference":"CER目标为8%，但数字和否定必须单独检查。","audio":"audio/mixed-080.wav"}
+{"id":"action-081","reference":"帮我比较Wi-Fi和蓝牙传输音频的区别。","audio":"audio/action-081.wav"}
+{"id":"action-082","reference":"请生成一个包含目标、背景和约束的提示词。","audio":"audio/action-082.wav"}
+{"id":"action-083","reference":"把这句话翻译成英语，但不要改变数字。","audio":"audio/action-083.wav"}
+{"id":"action-084","reference":"回答控制在120个字以内，不要展开历史背景。","audio":"audio/action-084.wav"}
+{"id":"action-085","reference":"先保存当前草稿，再重新提交转写。","audio":"audio/action-085.wav"}
+{"id":"action-086","reference":"如果服务失败，请保留输入并显示重试按钮。","audio":"audio/action-086.wav"}
+{"id":"action-087","reference":"设备断开后切换到电脑内置麦克风。","audio":"audio/action-087.wav"}
+{"id":"action-088","reference":"按住F8开始录音，松开F8停止录音。","audio":"audio/action-088.wav"}
+{"id":"action-089","reference":"复制处理结果，不要自动输入到其他应用。","audio":"audio/action-089.wav"}
+{"id":"action-090","reference":"清空问答会话，但不要删除本地历史。","audio":"audio/action-090.wav"}
+{"id":"speech-091","reference":"嗯，帮我确认一下，预算确实是1200元，不是12000元。","audio":"audio/speech-091.wav"}
+{"id":"speech-092","reference":"那个，今天先不发布，等明天下午3点再确认。","audio":"audio/speech-092.wav"}
+{"id":"speech-093","reference":"请把这个，这个接口超时的问题记录下来。","audio":"audio/speech-093.wav"}
+{"id":"speech-094","reference":"我没有说删除，我说的是暂时隐藏。","audio":"audio/speech-094.wav"}
+{"id":"speech-095","reference":"版本号是2.0.21，中间有2个点。","audio":"audio/speech-095.wav"}
+{"id":"speech-096","reference":"测试1次失败不代表100次都会失败。","audio":"audio/speech-096.wav"}
+{"id":"speech-097","reference":"录音大约10秒，松开以后再开始计算等待时间。","audio":"audio/speech-097.wav"}
+{"id":"speech-098","reference":"信号有4格，电量是84%，但固件版本未知。","audio":"audio/speech-098.wav"}
+{"id":"speech-099","reference":"请重复一遍：不要上传音频，不要上传音频。","audio":"audio/speech-099.wav"}
+{"id":"speech-100","reference":"最后一条样本编号是100，完成后生成验收报告。","audio":"audio/speech-100.wav"}

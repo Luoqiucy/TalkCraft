@@ -1,0 +1,100 @@
+{"id":"schedule-001","reference":"今天下午3点召开项目评审，请提前10分钟到会议室。","audio":"comparison-audio/schedule-001.wav"}
+{"id":"schedule-002","reference":"明天上午9点半不要安排其他会议。","audio":"comparison-audio/schedule-002.wav"}
+{"id":"schedule-003","reference":"把周五的演示改到下周一下午2点。","audio":"comparison-audio/schedule-003.wav"}
+{"id":"schedule-004","reference":"会议不是4点开始，而是4点30分开始。","audio":"comparison-audio/schedule-004.wav"}
+{"id":"schedule-005","reference":"请在2026年9月18日前提交最终方案。","audio":"comparison-audio/schedule-005.wav"}
+{"id":"schedule-006","reference":"本周三上午10点与供应商进行第2轮沟通。","audio":"comparison-audio/schedule-006.wav"}
+{"id":"schedule-007","reference":"午休时间不要超过1小时，下午1点继续测试。","audio":"comparison-audio/schedule-007.wav"}
+{"id":"schedule-008","reference":"提醒我晚上8点给王经理回复邮件。","audio":"comparison-audio/schedule-008.wav"}
+{"id":"schedule-009","reference":"第3次联调暂时取消，不要通知外部客户。","audio":"comparison-audio/schedule-009.wav"}
+{"id":"schedule-010","reference":"把15分钟的讨论延长到25分钟。","audio":"comparison-audio/schedule-010.wav"}
+{"id":"finance-011","reference":"这批设备预算是1200元，不包含运费。","audio":"comparison-audio/finance-011.wav"}
+{"id":"finance-012","reference":"报价从899元调整为869元。","audio":"comparison-audio/finance-012.wav"}
+{"id":"finance-013","reference":"本月费用没有超过5000元。","audio":"comparison-audio/finance-013.wav"}
+{"id":"finance-014","reference":"请核对发票号码310245和金额2688.50元。","audio":"comparison-audio/finance-014.wav"}
+{"id":"finance-015","reference":"首付款为30%，尾款为70%。","audio":"comparison-audio/finance-015.wav"}
+{"id":"finance-016","reference":"不要把12万元写成120万元。","audio":"comparison-audio/finance-016.wav"}
+{"id":"finance-017","reference":"库存还剩48台，其中7台不能发货。","audio":"comparison-audio/finance-017.wav"}
+{"id":"finance-018","reference":"合同总价是3.6万元，税率为6%。","audio":"comparison-audio/finance-018.wav"}
+{"id":"finance-019","reference":"本次退款不是299元，而是2999元。","audio":"comparison-audio/finance-019.wav"}
+{"id":"finance-020","reference":"账户余额低于1000元时不要自动续费。","audio":"comparison-audio/finance-020.wav"}
+{"id":"negative-021","reference":"不要删除原始录音，也不要覆盖已有文字。","audio":"comparison-audio/negative-021.wav"}
+{"id":"negative-022","reference":"当前没有连接无线麦克风。","audio":"comparison-audio/negative-022.wav"}
+{"id":"negative-023","reference":"这个结果不是最终版本，暂时不能发布。","audio":"comparison-audio/negative-023.wav"}
+{"id":"negative-024","reference":"未获得授权时不得上传音频。","audio":"comparison-audio/negative-024.wav"}
+{"id":"negative-025","reference":"我不需要长篇解释，只要3条结论。","audio":"comparison-audio/negative-025.wav"}
+{"id":"negative-026","reference":"请勿关闭窗口，也别清空输入内容。","audio":"comparison-audio/negative-026.wav"}
+{"id":"negative-027","reference":"没有检测到有效语音，不代表麦克风损坏。","audio":"comparison-audio/negative-027.wav"}
+{"id":"negative-028","reference":"这次更新不会自动安装，也不会重启电脑。","audio":"comparison-audio/negative-028.wav"}
+{"id":"negative-029","reference":"不要使用模拟结果冒充真实识别。","audio":"comparison-audio/negative-029.wav"}
+{"id":"negative-030","reference":"网络中断后不能丢失已经编辑的文本。","audio":"comparison-audio/negative-030.wav"}
+{"id":"technical-031","reference":"ESP32-S3通过Wi-Fi发送16kHz单声道音频。","audio":"comparison-audio/technical-031.wav"}
+{"id":"technical-032","reference":"WebSocket连接超时设置为30秒。","audio":"comparison-audio/technical-032.wav"}
+{"id":"technical-033","reference":"API返回HTTP 504时保留本地WAV文件。","audio":"comparison-audio/technical-033.wav"}
+{"id":"technical-034","reference":"DeepSeek模型与ASR服务必须独立配置。","audio":"comparison-audio/technical-034.wav"}
+{"id":"technical-035","reference":"Ollama失败后不要自动切换到云端。","audio":"comparison-audio/technical-035.wav"}
+{"id":"technical-036","reference":"采样格式是16bit PCM，不是24bit PCM。","audio":"comparison-audio/technical-036.wav"}
+{"id":"technical-037","reference":"设备编号、会话编号和事件序号都不能重复。","audio":"comparison-audio/technical-037.wav"}
+{"id":"technical-038","reference":"固件使用AES-256 GCM保护本地配置。","audio":"comparison-audio/technical-038.wav"}
+{"id":"technical-039","reference":"请检查JSON字段resourceId是否正确。","audio":"comparison-audio/technical-039.wav"}
+{"id":"technical-040","reference":"本次延迟为1820毫秒，目标不超过5000毫秒。","audio":"comparison-audio/technical-040.wav"}
+{"id":"terms-041","reference":"TalkCraft的按键A用于听写整理。","audio":"comparison-audio/terms-041.wav"}
+{"id":"terms-042","reference":"按键B用于Quick Q&A即时问答。","audio":"comparison-audio/terms-042.wav"}
+{"id":"terms-043","reference":"按键C默认执行中英文翻译。","audio":"comparison-audio/terms-043.wav"}
+{"id":"terms-044","reference":"按键D用于Prompt Optimizer提示词整理。","audio":"comparison-audio/terms-044.wav"}
+{"id":"terms-045","reference":"请把深度求索统一写成DeepSeek-V3。","audio":"comparison-audio/terms-045.wav"}
+{"id":"terms-046","reference":"把扑味吐托克纠正为Push-to-Talk。","audio":"comparison-audio/terms-046.wav"}
+{"id":"terms-047","reference":"协议联调翻译为protocol integration。","audio":"comparison-audio/terms-047.wav"}
+{"id":"terms-048","reference":"Windows Credential Manager不保存原始音频。","audio":"comparison-audio/terms-048.wav"}
+{"id":"terms-049","reference":"macOS Keychain权限尚未完成验收。","audio":"comparison-audio/terms-049.wav"}
+{"id":"terms-050","reference":"Figma节点2:3989对应听写工作台。","audio":"comparison-audio/terms-050.wav"}
+{"id":"places-001","reference":"接下来七天苏州张家港市的天气怎么样？","audio":"comparison-audio/places-001.wav"}
+{"id":"places-002","reference":"请查江苏省苏州市张家港市后天的天气，不是苏州市区。","audio":"comparison-audio/places-002.wav"}
+{"id":"places-003","reference":"从张家港凤凰镇到南京鼓楼区需要多久？","audio":"comparison-audio/places-003.wav"}
+{"id":"places-004","reference":"明天去江苏省昆山市花桥镇开会，上午九点到。","audio":"comparison-audio/places-004.wav"}
+{"id":"places-005","reference":"把地址改为苏州市工业园区星湖街，不是苏州新区。","audio":"comparison-audio/places-005.wav"}
+{"id":"places-006","reference":"我在浙江省杭州市萧山区，不在江苏省南京市。","audio":"comparison-audio/places-006.wav"}
+{"id":"places-007","reference":"先查无锡江阴市，再查常州溧阳市，不要弄反。","audio":"comparison-audio/places-007.wav"}
+{"id":"places-008","reference":"收货地点是上海市浦东新区张江镇，门牌号二百零八号。","audio":"comparison-audio/places-008.wav"}
+{"id":"places-009","reference":"请确认河北省廊坊市三河市燕郊镇的地址。","audio":"comparison-audio/places-009.wav"}
+{"id":"places-010","reference":"今天从广东省东莞市虎门镇到深圳市南山区。","audio":"comparison-audio/places-010.wav"}
+{"id":"office-061","reference":"请告诉团队，今天的评审改到下午3点。","audio":"comparison-audio/office-061.wav"}
+{"id":"office-062","reference":"邮件主题写项目延期说明，不要写紧急通知。","audio":"comparison-audio/office-062.wav"}
+{"id":"office-063","reference":"请把会议结论整理成4个要点。","audio":"comparison-audio/office-063.wav"}
+{"id":"office-064","reference":"客户没有确认交付日期，暂时不要承诺。","audio":"comparison-audio/office-064.wav"}
+{"id":"office-065","reference":"这份文档只发给研发组，不发给外部人员。","audio":"comparison-audio/office-065.wav"}
+{"id":"office-066","reference":"请在Slack的project-alpha频道同步进度。","audio":"comparison-audio/office-066.wav"}
+{"id":"office-067","reference":"Word文档第12页有2处需要修改。","audio":"comparison-audio/office-067.wav"}
+{"id":"office-068","reference":"VS Code中的配置文件不能提交密钥。","audio":"comparison-audio/office-068.wav"}
+{"id":"office-069","reference":"请回复收到，我们会在24小时内处理。","audio":"comparison-audio/office-069.wav"}
+{"id":"office-070","reference":"本周完成了录音、转写和文字整理3项功能。","audio":"comparison-audio/office-070.wav"}
+{"id":"mixed-071","reference":"OpenAI模型名称填写gpt-5，不要填写网页账户名称。","audio":"comparison-audio/mixed-071.wav"}
+{"id":"mixed-072","reference":"DeepSeek API Key只保存在本机配置文件中。","audio":"comparison-audio/mixed-072.wav"}
+{"id":"mixed-073","reference":"Ollama地址是127.0.0.1端口11434。","audio":"comparison-audio/mixed-073.wav"}
+{"id":"mixed-074","reference":"HTTP状态码400表示请求参数可能有误。","audio":"comparison-audio/mixed-074.wav"}
+{"id":"mixed-075","reference":"Wi-Fi信号为负55dBm时显示4格。","audio":"comparison-audio/mixed-075.wav"}
+{"id":"mixed-076","reference":"蓝牙版本5.3不代表音频延迟低于2毫秒。","audio":"comparison-audio/mixed-076.wav"}
+{"id":"mixed-077","reference":"USB-C接收器当前没有连接。","audio":"comparison-audio/mixed-077.wav"}
+{"id":"mixed-078","reference":"JSONL文件必须恰好包含100行。","audio":"comparison-audio/mixed-078.wav"}
+{"id":"mixed-079","reference":"P95延迟目标是不超过5秒。","audio":"comparison-audio/mixed-079.wav"}
+{"id":"mixed-080","reference":"CER目标为8%，但数字和否定必须单独检查。","audio":"comparison-audio/mixed-080.wav"}
+{"id":"action-081","reference":"帮我比较Wi-Fi和蓝牙传输音频的区别。","audio":"comparison-audio/action-081.wav"}
+{"id":"action-082","reference":"请生成一个包含目标、背景和约束的提示词。","audio":"comparison-audio/action-082.wav"}
+{"id":"action-083","reference":"把这句话翻译成英语，但不要改变数字。","audio":"comparison-audio/action-083.wav"}
+{"id":"action-084","reference":"回答控制在120个字以内，不要展开历史背景。","audio":"comparison-audio/action-084.wav"}
+{"id":"action-085","reference":"先保存当前草稿，再重新提交转写。","audio":"comparison-audio/action-085.wav"}
+{"id":"action-086","reference":"如果服务失败，请保留输入并显示重试按钮。","audio":"comparison-audio/action-086.wav"}
+{"id":"action-087","reference":"设备断开后切换到电脑内置麦克风。","audio":"comparison-audio/action-087.wav"}
+{"id":"action-088","reference":"按住F8开始录音，松开F8停止录音。","audio":"comparison-audio/action-088.wav"}
+{"id":"action-089","reference":"复制处理结果，不要自动输入到其他应用。","audio":"comparison-audio/action-089.wav"}
+{"id":"action-090","reference":"清空问答会话，但不要删除本地历史。","audio":"comparison-audio/action-090.wav"}
+{"id":"long-001","reference":"请记录这次会议的安排。周三上午九点先在张家港召开项目评审，十点半讨论设备连接，下午两点核对预算。预算上限是二十六万元，不是二十六万五千元。会议结束后请把三项待办分别发给负责人。","audio":"comparison-audio/long-001.wav"}
+{"id":"long-002","reference":"我再说明一遍发货要求。第一批发三百二十台，第二批发一百八十台，收货地点都是苏州市工业园区。请不要把第一批改成三百二十一台，也不要提前确认签收，等仓库核对序列号以后再更新记录。","audio":"comparison-audio/long-002.wav"}
+{"id":"long-003","reference":"这段录音是技术说明。设备通过无线网络与桌面端通信，断线以后先在本机保留尚未提交的音频，重新连接时由用户决定是否继续。这里说的是暂存，不是自动上传。请把这两个条件分开记录，避免误解。","audio":"comparison-audio/long-003.wav"}
+{"id":"long-004","reference":"关于下周的行程，周一在南京，周二和周三在张家港，周四回到苏州。周二下午三点与客户开会，会议地点是张家港市区，不是常熟市。请不要根据城市名称猜测具体街道，确认后再填写详细地址。","audio":"comparison-audio/long-004.wav"}
+{"id":"long-005","reference":"请核对报价单中的数字。标准版每套一千二百八十元，专业版每套两千三百六十元，安装费单独计算。总价不能只把两个单价相加，因为订单数量还没有确认。等数量和税率都核实之后，再出正式报价。","audio":"comparison-audio/long-005.wav"}
+{"id":"long-006","reference":"今天先讨论软件问题。用户按一次快捷键开始录音，再按一次结束录音；长按快捷键只打开帮助窗口，不应该误触发新的录音。问答模式中如果已经开始处理，下一次按键应取消当前任务，而不是切换成听写模式。","audio":"comparison-audio/long-006.wav"}
+{"id":"long-007","reference":"我要确认一条否定指令。不要删除旧的历史记录，不要覆盖原始转录，也不要把失败的录音当成空白文件清理。允许用户自己导出音频副本，但导出的副本不属于软件内部的自动清理范围。请完整保留这些限制。","audio":"comparison-audio/long-007.wav"}
+{"id":"long-008","reference":"天气问题需要分清时间。我问的是张家港未来七天的天气，不是今天的实时温度，也不是过去七天的观测。如果服务只返回今天和明天，就明确告诉我还缺哪些日期的数据，不要凭经验补齐后五天。","audio":"comparison-audio/long-008.wav"}
+{"id":"long-009","reference":"这封邮件请先保存为草稿。开头感谢对方昨天提供测试设备，然后说明我们在十月三日下午完成第一轮验证，目前只发现两个待复核问题。注意这里是待复核，不代表已经确认是硬件故障，也不要直接发送给客户。","audio":"comparison-audio/long-009.wav"}
+{"id":"long-010","reference":"最后总结本次录音。我们需要比较同一批中文语音在不同识别服务上的字错率、数字和否定词保留情况、停止后的等待时间、内存和费用。地名要包含张家港、江阴和昆山，长录音也要纳入。没有真实录音时不要用合成文本冒充测量结果。","audio":"comparison-audio/long-010.wav"}
