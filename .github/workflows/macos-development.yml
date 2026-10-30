@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: macos-development
+  group: macos-development-${{ github.sha }}
   cancel-in-progress: false
 
 jobs:
