@@ -40,8 +40,23 @@ jobs:
           npm test
       - name: Prepare Rust toolchain
         run: rustup update stable --no-self-update
+      - uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target/mac-dev
+          key: mac-dev-${{ runner.arch }}-${{ hashFiles('src-tauri/Cargo.lock') }}
       - name: Build and smoke-test Mac development app
         run: node scripts/build-macos.mjs
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target/mac-dev
+          key: mac-dev-${{ runner.arch }}-${{ hashFiles('src-tauri/Cargo.lock') }}
       - uses: actions/upload-artifact@v4
         with:
           name: TalkCraft-macOS-${{ matrix.label }}-dev

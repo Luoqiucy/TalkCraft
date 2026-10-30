@@ -1,4 +1,12 @@
 {
   "productName": "TalkCraft",
-  "app": { "macOSPrivateApi": true }
+  "app": {
+    "macOSPrivateApi": false,
+    "windows": [
+      { "label": "main", "url": "/react/", "title": "TalkCraft · 桌面助手", "width": 1000, "height": 900, "minWidth": 600, "minHeight": 500, "create": false },
+      { "label": "hud", "url": "/?hud=1", "title": "TalkCraft 录音悬浮条", "width": 384, "height": 360, "transparent": false, "alwaysOnTop": true, "resizable": false, "visible": false, "create": false },
+      { "label": "keymap", "url": "/react/?panel=keymap", "title": "TalkCraft 快捷键提示", "width": 380, "height": 360, "transparent": false, "alwaysOnTop": true, "resizable": false, "visible": false, "create": false },
+      { "label": "chat", "url": "/react/?panel=chat", "title": "TalkCraft 问答", "width": 480, "height": 520, "transparent": false, "alwaysOnTop": true, "resizable": true, "visible": false, "create": false }
+    ]
+  }
 }
