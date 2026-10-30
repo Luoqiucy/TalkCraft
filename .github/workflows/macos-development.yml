@@ -1,0 +1,71 @@
+name: macOS development build
+
+# Manual only: normal commits never consume paid/provider test calls or rebuild.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-development
+  cancel-in-progress: false
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            label: AppleSilicon
+          - runner: macos-15-intel
+            label: Intel
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 35
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+      CARGO_INCREMENTAL: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Offline regression and syntax checks
+        run: |
+          npm run check
+          npm test
+      - name: Prepare Rust toolchain
+        run: rustup update stable --no-self-update
+      - name: Build and smoke-test Mac development app
+        run: node scripts/build-macos.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: TalkCraft-macOS-${{ matrix.label }}-dev
+          path: |
+            dist/TalkCraft-macOS-*-dev.zip
+            dist/TalkCraft-macOS-*-dev.zip.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Publish private development prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create "mac-dev-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" artifacts/*.zip artifacts/*.sha256 --target "$GITHUB_SHA" --prerelease --title "TalkCraft macOS 开发测试版 ${GITHUB_RUN_NUMBER}" --notes-file docs/MACOS-DEVELOPMENT.md

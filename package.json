@@ -8,6 +8,7 @@
     "test": "node --test",
     "react:build": "vite build",
     "react:check": "tsc --noEmit",
+    "macos:build": "node scripts/build-macos.mjs",
     "pricing:check": "tsc -p tsconfig.pricing.json --noEmit",
     "pricing:build": "vite build --config vite.pricing.config.ts",
     "pricing:dev": "vite --config vite.pricing.config.ts",

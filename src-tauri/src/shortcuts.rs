@@ -4,13 +4,22 @@ use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 pub type Bindings = BTreeMap<String, String>;
 pub struct Settings {pub bindings: Bindings, pub revision: u64, pub status: String, pub hook_status: String, pub load_error: Option<String>}
 pub struct ShortcutSettings(pub Mutex<Settings>);
-fn defaults() -> Bindings {[("dictation","RightAlt"),("chat","RightAlt+Space"),("translate","RightAlt+RightShift"),("prompt","RightAltDouble"),("process","Alt+Shift+Enter"),("hud","Alt+Shift+M")].into_iter().map(|(a,b)|(a.into(),b.into())).collect()}
-pub fn state() -> ShortcutSettings {ShortcutSettings(Mutex::new(Settings{bindings:defaults(),revision:0,status:"尚未注册".into(),hook_status:"Windows键盘监听正在启动".into(),load_error:None}))}
+fn defaults() -> Bindings {
+ #[cfg(target_os="macos")]
+ let values=[("dictation","CommandOrControl+Shift+D"),("chat","CommandOrControl+Shift+Space"),("translate","CommandOrControl+Shift+T"),("prompt","CommandOrControl+Shift+P"),("process","CommandOrControl+Shift+Enter"),("hud","CommandOrControl+Shift+M")];
+ #[cfg(not(target_os="macos"))]
+ let values=[("dictation","RightAlt"),("chat","RightAlt+Space"),("translate","RightAlt+RightShift"),("prompt","RightAltDouble"),("process","Alt+Shift+Enter"),("hud","Alt+Shift+M")];
+ values.into_iter().map(|(a,b)|(a.into(),b.into())).collect()
+}
+pub fn state() -> ShortcutSettings {ShortcutSettings(Mutex::new(Settings{bindings:defaults(),revision:0,status:"尚未注册".into(),hook_status:if cfg!(target_os="macos"){"macOS使用标准组合键；右侧Option手势尚未接入".into()}else{"Windows键盘监听正在启动".into()},load_error:None}))}
 pub fn validate(input: &Bindings) -> Result<Vec<Shortcut>, String> {
  let expected=defaults();if input.len()!=expected.len()||input.keys().any(|key|!expected.contains_key(key)){return Err("快捷键功能列表无效".into());}
- let mut ids=HashSet::new();let mut custom=HashSet::new();let mut parsed=Vec::new();
+ let mut ids=HashSet::new();let mut custom:HashSet<String>=HashSet::new();let mut parsed=Vec::new();
  for (action,value) in input {if value.is_empty(){continue;}
- if crate::right_keys::is_custom(value){if !matches!(action.as_str(),"dictation"|"translate"|"chat"|"prompt"){return Err("此特殊组合仅用于录音模式".into());}if !custom.insert(value.clone()){return Err("两个功能不能使用相同快捷键".into());}continue;}
+ if crate::right_keys::is_custom(value){
+ #[cfg(target_os="macos")]return Err("Mac开发版暂不支持单独右侧Option及其特殊手势，请选择Command/Control组合键".into());
+ #[cfg(not(target_os="macos"))]{if !matches!(action.as_str(),"dictation"|"translate"|"chat"|"prompt"){return Err("此特殊组合仅用于录音模式".into());}if !custom.insert(value.clone()){return Err("两个功能不能使用相同快捷键".into());}continue;}
+ }
  if value.len()>80{return Err(format!("{}快捷键过长",action));}
  let shortcut=Shortcut::from_str(value).map_err(|_|format!("{}快捷键格式无效",action))?;
  if !ids.insert(shortcut.id()){return Err("两个功能不能使用相同快捷键".into());}parsed.push(shortcut);}
@@ -92,17 +101,18 @@ pub fn trigger<R:Runtime>(app:&tauri::AppHandle<R>,shortcut:&Shortcut,event:Shor
  }else{crate::right_keys::record_shortcut_diagnostic("global_shortcut",format!("callback_unmapped; shortcut_id={}",shortcut.id()));}
 }
 #[cfg(test)]mod tests{use super::*;
- #[test]fn global_plugin_callback_maps_registered_shortcuts_back_to_the_saved_action(){let bindings=defaults();for (action,binding) in [("process","Alt+Shift+Enter"),("hud","Alt+Shift+M")]{let parsed=Shortcut::from_str(binding).unwrap();assert_eq!(action_for_shortcut(&bindings,parsed.id()).as_deref(),Some(action));}let unrelated=Shortcut::from_str("Ctrl+Shift+K").unwrap();assert_eq!(action_for_shortcut(&bindings,unrelated.id()),None);}
- #[test]fn custom_bindings_can_be_reassigned_disabled_and_reloaded(){
+ #[test]fn global_plugin_callback_maps_registered_shortcuts_back_to_the_saved_action(){let bindings=defaults();for action in ["process","hud"]{let parsed=Shortcut::from_str(&bindings[action]).unwrap();assert_eq!(action_for_shortcut(&bindings,parsed.id()).as_deref(),Some(action));}let unrelated=Shortcut::from_str("Ctrl+Shift+K").unwrap();assert_eq!(action_for_shortcut(&bindings,unrelated.id()),None);}
+ #[cfg(not(target_os="macos"))]#[test]fn custom_bindings_can_be_reassigned_disabled_and_reloaded(){
   let mut v=defaults();v.insert("dictation".into(),"Ctrl+Shift+K".into());v.insert("chat".into(),"RightAlt".into());v.insert("translate".into(),"".into());assert_eq!(validate(&v).unwrap().len(),3);
   let bytes=serde_json::to_vec(&v).unwrap();let reloaded:Bindings=serde_json::from_slice(&bytes).unwrap();assert_eq!(reloaded,v);assert!(validate(&reloaded).is_ok());
   v.insert("prompt".into(),"RightAlt".into());assert!(validate(&v).is_err());
  }
  #[test]fn single_keys_and_combinations_are_supported(){let mut v=defaults();for key in ["A","5","F8","Space","Shift+A","Ctrl+K","Alt+5","Ctrl+Shift+A"]{v.insert("chat".into(),key.into());assert!(validate(&v).is_ok(),"{} should be accepted",key);}}
- #[test]fn defaults_valid(){assert_eq!(validate(&defaults()).unwrap().len(),2);}
- #[test]fn duplicates_aliases_rejected(){let mut v=defaults();v.insert("chat".into(),"RightAlt".into());assert!(validate(&v).is_err());v.insert("dictation".into(),"Ctrl+Shift+A".into());v.insert("chat".into(),"Control+Shift+A".into());assert!(validate(&v).is_err());}
- #[test]fn reserved_alt_space_is_app_scoped_and_cannot_overlap_right_alt_space(){let mut v=defaults();v.insert("chat".into(),"Alt+Space".into());assert!(validate(&v).is_ok());assert_eq!(shortcut_status(&v,&[]),"Alt+Space 在 TalkCraft 窗口前台时优先触发；其他应用保留 Windows 系统菜单");v.insert("dictation".into(),"RightAlt+Space".into());assert!(validate(&v).unwrap_err().contains("同时触发"));}
+ #[test]fn defaults_valid(){assert_eq!(validate(&defaults()).unwrap().len(),if cfg!(target_os="macos"){6}else{2});}
+ #[test]fn duplicates_aliases_rejected(){let mut v=defaults();v.insert("chat".into(),v["dictation"].clone());assert!(validate(&v).is_err());v.insert("dictation".into(),"Ctrl+Shift+A".into());v.insert("chat".into(),"Control+Shift+A".into());assert!(validate(&v).is_err());}
+ #[cfg(not(target_os="macos"))]#[test]fn reserved_alt_space_is_app_scoped_and_cannot_overlap_right_alt_space(){let mut v=defaults();v.insert("chat".into(),"Alt+Space".into());assert!(validate(&v).is_ok());assert_eq!(shortcut_status(&v,&[]),"Alt+Space 在 TalkCraft 窗口前台时优先触发；其他应用保留 Windows 系统菜单");v.insert("dictation".into(),"RightAlt+Space".into());assert!(validate(&v).unwrap_err().contains("同时触发"));}
  #[test]fn shortcut_status_keeps_keyboard_hook_installation_result_visible(){let failed=Settings{bindings:defaults(),revision:0,status:"全局快捷键已启用".into(),hook_status:"键盘钩子安装失败，RightAlt/Alt+Space自定义快捷键不可用".into(),load_error:None};assert!(display_status(&failed).contains("键盘钩子安装失败"));let ready=Settings{hook_status:"Windows全局键盘钩子已安装".into(),..failed};assert!(display_status(&ready).contains("Windows全局键盘钩子已安装"));}
- #[test]fn disable_and_invalid(){let mut v=defaults();v.insert("chat".into(),"".into());assert_eq!(validate(&v).unwrap().len(),2);v.insert("chat".into(),"A".into());assert!(validate(&v).is_ok());v.insert("chat".into(),"Ctrl+InvalidKey".into());assert!(validate(&v).is_err());v.remove("hud");assert!(validate(&v).is_err());}
+ #[test]fn disable_and_invalid(){let mut v=defaults();v.insert("chat".into(),"".into());assert_eq!(validate(&v).unwrap().len(),if cfg!(target_os="macos"){5}else{2});v.insert("chat".into(),"A".into());assert!(validate(&v).is_ok());v.insert("chat".into(),"Ctrl+InvalidKey".into());assert!(validate(&v).is_err());v.remove("hud");assert!(validate(&v).is_err());}
+ #[cfg(target_os="macos")]#[test]fn mac_rejects_unimplemented_right_option_gestures(){for value in ["RightAlt","RightAltDouble","RightAlt+Space"]{let mut v=defaults();v.insert("chat".into(),value.into());assert!(validate(&v).unwrap_err().contains("Mac开发版"));}}
 }
 

@@ -12,10 +12,11 @@ mod tray;
 mod clipboard;
 mod file_export;
 mod external_links;
+mod runtime_paths;
+static EXIT_REQUESTED:std::sync::atomic::AtomicBool=std::sync::atomic::AtomicBool::new(false);
 
 fn startup_error(message:&str){
-    let path=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../.local/startup-error.txt");
-    let _=std::fs::write(path,message);
+    if let Ok(directory)=runtime_paths::state_dir(){let _=std::fs::create_dir_all(&directory);let _=std::fs::write(directory.join("startup-error.txt"),message);}
     eprintln!("TalkCraft 启动失败：{message}");
     #[cfg(windows)]unsafe{
         use windows_sys::Win32::UI::WindowsAndMessaging::{MessageBoxW,MB_ICONERROR,MB_OK};
@@ -55,7 +56,6 @@ fn desktop_restore_after_exit_failure(window:tauri::WebviewWindow)->Result<(),St
     window.show().map_err(|error|error.to_string())?;window.set_focus().map_err(|error|error.to_string())
 }
 pub fn exit_application(app:&tauri::AppHandle){
-    static EXIT_REQUESTED:std::sync::atomic::AtomicBool=std::sync::atomic::AtomicBool::new(false);
     if EXIT_REQUESTED.swap(true,std::sync::atomic::Ordering::SeqCst){return;}
     // Hide immediately after the user confirms exit; keep WebViews alive until
     // the authenticated shutdown request is acknowledged.
@@ -63,8 +63,7 @@ pub fn exit_application(app:&tauri::AppHandle){
     let app=app.clone();std::thread::spawn(move||{
         desktop_shutdown::finish_exit(desktop_shutdown::stop_service,|warning|{
         if let Some(error)=warning{
-            let log=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../.local/last-exit-warning.txt");
-            let _=std::fs::write(log,format!("应用退出，后台关闭未确认：{error}"));
+            if let Ok(directory)=runtime_paths::state_dir(){let _=std::fs::create_dir_all(&directory);let _=std::fs::write(directory.join("last-exit-warning.txt"),format!("应用退出，后台关闭未确认：{error}"));}
         }
         // A legacy or unavailable service must never trap the user in the app.
         app.exit(0);
@@ -128,13 +127,13 @@ fn panel_window(window:tauri::WebviewWindow,panel:String,action:String)->Result<
 }
 
 fn main() {
-    #[cfg(windows)]
+    #[cfg(any(windows,target_os="macos"))]
     let _instance = match single_instance::acquire() {
         Ok(Some(guard)) => guard,
         Ok(None) => {single_instance::show_existing(); return;},
         Err(error) => {startup_error(&error);return;},
     };
-    tauri::Builder::default()
+    let application=tauri::Builder::default()
         .on_window_event(|window,event|{
             if let tauri::WindowEvent::CloseRequested{api,..}=event{
                 if close_hides_window(window.label()){
@@ -156,6 +155,7 @@ fn main() {
             for config in &app.config().app.windows {
                 let builder=tauri::WebviewWindowBuilder::from_config(app.handle(), config)?;
                 #[cfg(windows)]let builder=builder.additional_browser_args("--autoplay-policy=no-user-gesture-required");
+                #[cfg(target_os="macos")]let builder=if config.label=="hud"{builder.visible(false)}else{builder};
                 let window=builder
                     .initialization_script(format!("window.__TALKCRAFT_SESSION__={};window.__TALKCRAFT_FLUID__=true;", std::process::id()))
                     .build()?;
@@ -165,8 +165,21 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![file_export::file_export, external_links::open_external_url, hud_window, panel_window, hud_interactive, hud_hit_regions, clipboard::clipboard_write, desktop_prepare_exit, desktop_restore_after_exit_failure, desktop_exit, desktop_minimize, shortcuts::shortcuts_read, shortcuts::shortcuts_editor_focus, shortcuts::shortcuts_save, right_keys::shortcuts_diagnostics, right_keys::shortcuts_diagnostic_frontend, output_target::output_target, output_target::output_preflight, output_target::output_send, output_target::output_send_current, output_text::output_preview])
-        .run(tauri::generate_context!())
-        .unwrap_or_else(|error|startup_error(&error.to_string()));
+        .build(tauri::generate_context!());
+    match application{
+        Ok(application)=>application.run(|_app,_event|{
+            #[cfg(target_os="macos")]
+            match _event{
+                tauri::RunEvent::ExitRequested{api,..} if !EXIT_REQUESTED.load(std::sync::atomic::Ordering::SeqCst)=>{
+                    api.prevent_exit();
+                    if let Some(main)=_app.get_webview_window("main"){let _=main.show();let _=main.set_focus();let _=main.eval("window.dispatchEvent(new CustomEvent('talkcraft-close-request',{detail:{force:true}}));");}
+                },
+                tauri::RunEvent::Reopen{..}=>{if let Some(main)=_app.get_webview_window("main"){let _=main.show();let _=main.set_focus();}},
+                _=>{}
+            }
+        }),
+        Err(error)=>startup_error(&error.to_string())
+    }
 }
 
 #[cfg(test)]mod lifecycle_tests{

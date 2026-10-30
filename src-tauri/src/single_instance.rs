@@ -23,3 +23,22 @@ pub fn show_existing(){
 mod tests{use super::*;
  #[test]fn second_instance_rejected_and_lock_released(){let name=format!("Local\\TalkCraft.Test.SingleInstance.{}",std::process::id());let first=acquire_named(&name).unwrap().unwrap();assert!(acquire_named(&name).unwrap().is_none());drop(first);assert!(acquire_named(&name).unwrap().is_some());}
 }
+
+#[cfg(target_os="macos")]
+pub struct Guard(std::fs::File);
+#[cfg(target_os="macos")]
+pub fn acquire()->Result<Option<Guard>,String>{
+ use std::os::{fd::AsRawFd,unix::fs::OpenOptionsExt};
+ extern "C"{fn flock(fd:i32,operation:i32)->i32;}
+ let directory=crate::runtime_paths::state_dir()?;
+ std::fs::create_dir_all(&directory).map_err(|_|"无法创建单实例目录")?;
+ let file=std::fs::OpenOptions::new().create(true).truncate(false).read(true).write(true).mode(0o600).open(directory.join("desktop.lock")).map_err(|_|"无法打开单实例锁")?;
+ if unsafe{flock(file.as_raw_fd(),2|4)}==0{return Ok(Some(Guard(file)));}
+ if std::io::Error::last_os_error().kind()==std::io::ErrorKind::WouldBlock{return Ok(None);}
+ Err("无法取得Mac单实例锁".into())
+}
+#[cfg(target_os="macos")]
+pub fn show_existing(){
+ // Finder/LaunchServices normally activates an existing .app instance.
+ // A second command-line launch exits without touching the active backend.
+}

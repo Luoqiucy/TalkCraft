@@ -13,5 +13,12 @@ pub fn clipboard_write(window:tauri::WebviewWindow,text:String)->Result<(),Strin
   if OpenClipboard(owner)==0 {GlobalFree(memory);return Err("剪贴板正被其他程序使用，请重试".into());}
   let ok=EmptyClipboard()!=0&&!SetClipboardData(13,memory as _).is_null();CloseClipboard();if !ok{GlobalFree(memory);return Err("复制失败，请重试".into());}Ok(())
  }
- #[cfg(not(windows))]{let _=text;Err("本平台原生复制尚未接入".into())}
+ #[cfg(target_os="macos")]{
+  use std::io::Write;
+  let mut child=std::process::Command::new("/usr/bin/pbcopy").stdin(std::process::Stdio::piped()).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null()).spawn().map_err(|_|"无法打开Mac剪贴板")?;
+  let written=child.stdin.take().ok_or("Mac剪贴板输入不可用").and_then(|mut input|input.write_all(text.as_bytes()).map_err(|_|"Mac剪贴板写入失败"));
+  let status=child.wait().map_err(|_|"Mac剪贴板状态未知")?;
+  written?;if status.success(){Ok(())}else{Err("Mac剪贴板写入失败".into())}
+ }
+ #[cfg(not(any(windows,target_os="macos")))]{let _=text;Err("本平台原生复制尚未接入".into())}
 }

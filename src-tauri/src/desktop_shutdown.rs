@@ -5,8 +5,9 @@ pub fn finish_exit(cleanup:impl FnOnce()->Result<(),String>,finish:impl FnOnce(O
 pub fn ensure_service()->Result<(),String>{
  let address:SocketAddr="127.0.0.1:4317".parse().unwrap();
  if TcpStream::connect_timeout(&address,Duration::from_secs(1)).is_ok(){return verify_service(address);}
- let root=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
- let mut command=std::process::Command::new("node");command.current_dir(&root).arg(root.join("scripts/asr-file.mjs")).args(["--port","4317"]).stdin(std::process::Stdio::null()).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null());
+ let root=crate::runtime_paths::backend_root()?;
+ let mut command=std::process::Command::new(crate::runtime_paths::node_binary()?);command.current_dir(&root).arg(root.join("scripts/asr-file.mjs")).args(["--port","4317"]).stdin(std::process::Stdio::null()).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null());
+ #[cfg(target_os="macos")]command.env("TALKCRAFT_DATA_DIR",crate::runtime_paths::state_dir()?);
  #[cfg(windows)]{use std::os::windows::process::CommandExt;command.creation_flags(0x08000000);}
  let mut child=command.spawn().map_err(|_|"无法启动后台服务，请确认Node已安装")?;
  for _ in 0..50 {if child.try_wait().map_err(|_|"无法读取后台启动状态")?.is_some(){return Err("后台启动失败，请检查端口和服务配置".into());}if TcpStream::connect_timeout(&address,Duration::from_millis(100)).is_ok(){return verify_service(address);}std::thread::sleep(Duration::from_millis(100));}
@@ -35,7 +36,7 @@ fn parse_status_response(response:&[u8])->Result<serde_json::Value,String>{
 pub fn stop_service()->Result<(),String>{
  let address:SocketAddr="127.0.0.1:4317".parse().unwrap();
  let stream=match TcpStream::connect_timeout(&address,Duration::from_millis(150)){Ok(stream)=>stream,Err(error) if error.kind()==std::io::ErrorKind::ConnectionRefused=>return Ok(()),Err(_)=>return Err("无法确认后台服务状态，请稍后重试".into())};
- let control=std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../.local/desktop-service.json");
+ let control=crate::runtime_paths::state_dir()?.join("desktop-service.json");
  let bytes=std::fs::read(control).map_err(|_|"后台服务尚未更新退出控制接口，请更新服务后重试")?;
  let value:serde_json::Value=serde_json::from_slice(&bytes).map_err(|_|"后台服务控制信息无效")?;
  let token=value["token"].as_str().ok_or("后台服务控制信息缺失")?;
