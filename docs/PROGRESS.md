@@ -4,6 +4,8 @@
 2026-09-30 Daisy联网问答生产链路与 Firecrawl 正文抓取增量修复：保留模型规划的精简搜索词并校验用户明确对象；移除仅凭资料充分性启发式禁用后续工具的路径；以新证据驱动有限补查；候选型号仅在来源支持时收敛；将已保存短来源片段安全带入“它多少钱/续航呢”等后续问题。复用现有 Firecrawl 配置新增 `/v2/scrape` 正文工具，保留 DNS/URL/大小/取消保护，并与本地读页共享6次/45秒预算。Node全量464/464、React检查和通用检查通过。Firecrawl 同一公开 URL 实测本地读取556ms/约97字符，Firecrawl 2346ms/约4592字符/服务报1点；真实 DeepSeek 端到端未测。用户退出后已运行统一Windows脚本，React/Vite/Rust构建通过并更新唯一EXE（SHA-256 `2D374D791004C0126A95175AD03F166145824F5F8DE8EA6C8BF2E7019B8D7686`）。未启动桌面程序；真实DeepSeek端到端仍待测试。详情见 `reports/2026-09-30-daisy-agent-tool-loop-firecrawl.md`。本轮从 `docs/PLAN.md` 移除15%额度跳过门槛。
 # 研发进度
 
+2026-11-02 Mac开发版已实际交付：手动构建41465610749在AppleSilicon和Intel均成功，两个架构各通过Node555项、Rust38项、React检查/构建，以及隔离原生应用启动和后台/页面/设置接口检查。两个ZIP与SHA-256文件已发布到私有预发布 https://github.com/Luoqiucy/TalkCraft/releases/tag/mac-dev-41465610749-1 。此前取消的构建未代表编译错误，本轮现有代码重跑成功，无新增生产代码修复。麦克风、真实云端、物理快捷键和界面操作仍待Mac实机验收；Windows EXE未更新。详见 docs/DELIVERY-2026-11-02.md。
+
 2026-10-31 GitHub上传实交付及Mac构建阻碍：私有仓库`https://github.com/Luoqiucy/TalkCraft`已创建、源码已推送并核实私有。Windows555项Node/44项Rust及React检查通过。首轮Mac构建`41098738945`在Tauri透明窗口特性匹配检查失败；修复为普通Mac窗口后已推送。后续遇到GitHub官方Actions性能下降事故，旧无进展任务已请求取消，最新双架构任务`41101844964`仍排队，尚无Mac下载产物，不能写成交付完成。通过后流水线会自动创建私有预发布；失败需按日志继续。详情见`docs/DELIVERY-2026-10-31.md`和`docs/MACOS-DEVELOPMENT.md`。Windows唯一EXE未替换。
 
 2026-10-31 GitHub与Mac开发版：已建立本地Git并将391个经排除/模式审查的基线文件提交为`e606c4e`，上传到`Luoqiucy/TalkCraft`，REST API确认私有仓库。用户明确授权上传源码及Mac版本。Mac增量改动接入随`.app`携带的Node/后台、可移动资源路径、用户目录可写配置、原生复制、标准Command组合键与独立单实例锁；Windows路径默认值与唯一EXE未替换。新增手动GitHub Actions双架构构建、隔离启动检查和私有预发布流程。Windows本机Node555/555、React类型/语法、Rust44/44通过；Mac构建尚待GitHub实际执行，麦克风/快捷键/窗口交互尚未验收。当前仅开发版，不生成DMG安装器，不宣称功能等价或商业上线。详见`docs/MACOS-DEVELOPMENT.md`。
