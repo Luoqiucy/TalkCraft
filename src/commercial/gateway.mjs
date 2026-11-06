@@ -112,7 +112,7 @@ export function createCommercialGateway({ store, provider, asr, limits, weatherT
           const questionInput = contextual ? { ...trustedInput, text: contextual.request.resolvedQuestion, originalText: contextual.original, request: contextual.request } : trustedInput;
           const canRunTools=input.webSearch===true||contextual?.intent==='personal-memory';
           const result = contextual && canRunTools && typeof provider.streamWithTools === 'function'
-            ? await answerDaisyQuestion(provider, questionInput, { signal: controller.signal, weatherTool, webpageTool, taskId: input.taskId })
+            ? await answerDaisyQuestion(provider, questionInput, { signal: controller.signal, weatherTool, webpageTool, taskId: input.taskId, prefetchPages: 4, prefetchTimeoutMs: 4000 })
             : await processText(contextual?{...questionInput,text:contextual.original}:input, provider, controller.signal);
           if(contextual?.request.sessionFacts?.length&&result&&typeof result==='object'&&!result.result)result.sessionFacts=contextual.request.sessionFacts;
           controller.signal.throwIfAborted();

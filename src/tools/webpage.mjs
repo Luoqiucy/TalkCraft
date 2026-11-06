@@ -6,7 +6,8 @@ import {PassThrough,Transform,Writable} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
 import {createBrotliDecompress,createGunzip,createInflate} from 'node:zlib';
 
-const MAX_COMPRESSED_BYTES=512*1024,MAX_DECOMPRESSED_BYTES=2*1024*1024,MAX_TEXT=24000,MAX_REDIRECTS=3;
+// Modern news and product pages are often 1–2 MiB of HTML; 512 KiB rejected most of them.
+const MAX_COMPRESSED_BYTES=2*1024*1024,MAX_DECOMPRESSED_BYTES=6*1024*1024,MAX_TEXT=24000,MAX_REDIRECTS=3;
 const blockedNames=/(^|\.)(localhost|local|internal|home|lan)$/i;
 function blockedV4(value){const p=value.split('.').map(Number),n=(p[0]<<24>>>0)+(p[1]<<16)+(p[2]<<8)+p[3];return p[0]===0||p[0]===10||p[0]===127||p[0]>=224||(n>=0x64400000&&n<=0x647fffff)||(n>=0xa9fe0000&&n<=0xa9feffff)||(n>=0xac100000&&n<=0xac1fffff)||(n>=0xc0000000&&n<=0xc00000ff)||(n>=0xc0000200&&n<=0xc00002ff)||(n>=0xc0a80000&&n<=0xc0a8ffff)||(n>=0xc6120000&&n<=0xc613ffff)||(n>=0xc6336400&&n<=0xc63364ff)||(n>=0xcb007100&&n<=0xcb0071ff);}
 function blockedIp(value){if(isIP(value)===4)return blockedV4(value);const v=value.toLowerCase();if(isIP(v)!==6)return true;if(v.startsWith('::ffff:'))return blockedV4(v.slice(7));return v==='::'||v==='::1'||v.startsWith('fc')||v.startsWith('fd')||/^fe[89ab]/.test(v)||v.startsWith('ff')||v.startsWith('2001:db8:');}
@@ -19,14 +20,17 @@ function decodeEntities(value){return value.replace(/&nbsp;/gi,' ').replace(/&am
 export function extractReadablePage(html,{url,fetchedAt=new Date().toISOString()}={}){
   const title=decodeEntities((html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim()).slice(0,300);
   const publishedAt=(html.match(/<meta[^>]+(?:property|name)=["'](?:article:published_time|date|datePublished)["'][^>]+content=["']([^"']+)["']/i)?.[1]||html.match(/<time[^>]+datetime=["']([^"']+)["']/i)?.[1]||'').slice(0,100);
-  if(/(?:captcha|verify you are human|access denied|robot check)/i.test(html.slice(0,12000)))throw new Error('网页访问被站点拦截或要求验证');
+  // Block pages are short and say so in their visible text. Matching the raw HTML
+  // flagged normal pages that merely load a reCAPTCHA widget or its CSS.
+  const visibleHead=html.slice(0,200000).replace(/<(script|style|noscript|template)\b[^>]*>[\s\S]*?<\/\1>/gi,' ').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+  if(visibleHead.length<1500&&/(?:captcha|verify you are human|access denied|robot check|安全验证|人机验证)/i.test(visibleHead))throw new Error('网页访问被站点拦截或要求验证');
   let content=(html.match(/<(?:main|article)\b[^>]*>([\s\S]*?)<\/(?:main|article)>/i)||html.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i)||[])[1]||html;
   content=content.replace(/<!--[\s\S]*?-->/g,' ').replace(/<(?:script|style|nav|header|footer|aside|form|noscript|svg|canvas|template)\b[^>]*>[\s\S]*?<\/(?:script|style|nav|header|footer|aside|form|noscript|svg|canvas|template)>/gi,' ').replace(/<(?:br|\/p|\/div|\/li|\/h[1-6]|\/tr|\/section)>/gi,'\n').replace(/<\/(?:td|th)>/gi,' | ').replace(/<[^>]+>/g,' ');
   const text=decodeEntities(content).replace(/[\t\f\v ]+/g,' ').replace(/\s*\|\s*/g,' | ').replace(/\n\s*\n+/g,'\n').trim().slice(0,MAX_TEXT);
   if(text.length<40){if(/<[^>]+(?:id|class)=["'][^"']*(?:app|root|content|hydrate)/i.test(html))throw new Error('网页只返回动态页面框架，当前读取器无法提取正文');throw new Error('网页正文解析失败或内容为空');}
   return {url,finalUrl:url,title:title||url,text,publishedAt:publishedAt||null,fetchedAt,contentType:'text/html'};
 }
-function requestPage(url,{signal,timeoutMs,lookupImpl=dnsLookup}){return new Promise((resolve,reject)=>{const transport=url.protocol==='https:'?https:http,req=transport.request(url,{method:'GET',headers:{'User-Agent':'TalkCraft/0.1 webpage-reader','Accept':'text/html,application/xhtml+xml,text/plain;q=0.9','Accept-Encoding':'gzip, deflate, br'},lookup:(host,options,callback)=>safeLookup(host,options,callback,signal,lookupImpl),signal},res=>resolve(res));req.setTimeout(timeoutMs,()=>req.destroy(new Error('网页读取超时')));req.on('error',reject);req.end();});}
+function requestPage(url,{signal,timeoutMs,lookupImpl=dnsLookup}){return new Promise((resolve,reject)=>{const transport=url.protocol==='https:'?https:http,req=transport.request(url,{method:'GET',headers:{'User-Agent':'Mozilla/5.0 (compatible; TalkCraft/0.1; webpage-reader)','Accept':'text/html,application/xhtml+xml,text/plain;q=0.9','Accept-Language':'zh-CN,zh;q=0.9,en;q=0.8','Accept-Encoding':'gzip, deflate, br'},lookup:(host,options,callback)=>safeLookup(host,options,callback,signal,lookupImpl),signal},res=>resolve(res));req.setTimeout(timeoutMs,()=>req.destroy(new Error('网页读取超时')));req.on('error',reject);req.end();});}
 function byteLimit(maxBytes,label){let size=0;return new Transform({transform(chunk,_encoding,callback){size+=chunk.length;if(size>maxBytes){const error=new Error(label);callback(error);return;}callback(null,chunk);}});}
 function decoderFor(encoding){if(encoding==='identity'||!encoding)return new PassThrough();if(encoding==='gzip'||encoding==='x-gzip')return createGunzip();if(encoding==='deflate')return createInflate();if(encoding==='br')return createBrotliDecompress();throw new Error('网页返回了不支持的压缩编码');}
 export async function readResponseBody(response,{maxCompressedBytes=MAX_COMPRESSED_BYTES,maxDecompressedBytes=MAX_DECOMPRESSED_BYTES,signal}={}){

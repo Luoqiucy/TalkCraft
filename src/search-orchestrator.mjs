@@ -94,14 +94,31 @@ const productFacetPatterns={
 function productFacetReport(product,text){const patterns=productFacetPatterns[product?.category]||[['核心参数',/参数|配置|规格|型号|性能/i],['量化指标',/\d+(?:\.\d+)?\s*(?:mm|毫米|km|公里|mah|kwh|kw|w|元|万元|%)/i],['价格',/版本|售价|价格|人民币|rmb|万元|元起|¥|￥/i],['续航/标准',/续航|里程|cltc|wltp|epa|\d+\s*(?:公里|km)/i],['版本/配置',/版本|车型|配置|发布|上市/i]];const matched=patterns.filter(([,pattern])=>pattern.test(text)).map(([name])=>name);const requestedMap={价格:['价格'],续航:['续航/标准'],容量:['容量'],接口:['接口'],重量:['重量'],屏幕:['屏幕'],芯片:['芯片'],相机:['相机'],电池:['电池'],充电:['充电'],动力:['动力']};const explicit=(product?.requestedFields||[]).flatMap(field=>requestedMap[field]||[]);if(product?.requestedAspects?.includes('评价'))explicit.push('评价');const specificallyRequested=[...explicit];if(product?.requestedAspects?.some(value=>value==='参数'||value==='配置'))specificallyRequested.push(...patterns.map(([name])=>name));const isMissing=name=>name==='评价'?!/(评测|测试|体验|实测|review|reviewed|口碑)/i.test(text):!matched.includes(name);const missing=specificallyRequested.filter(isMissing);return {available:matched,missing:[...new Set(missing)],requestedMissing:[...new Set(explicit.filter(isMissing))],minimumMet:matched.length>=2};}
 const requestNoise=/(?:帮(?:我)?|请|麻烦|给我)?(?:查一下|查一查|查查|查找|查询|搜索|检索|联网查|网上查|搜一下|找一下资料|了解一下)|请问|关于|告诉我|介绍|我想知道|想知道|详细|具体|相关|资料|信息|情况|一下|怎么样|如何|是什么|有哪些|多少|目前|当前|最新|近期|现在|今日|今天|明天|今年|版本|消息|的|呢|吗|和|与|以及/gi;
 function compactText(value){return String(value||'').toLowerCase().replace(/[^\p{Script=Han}a-z0-9]+/gu,'');}
+// Question words and particles carry no subject identity; they are segment breaks for term matching.
+const generalQuestionWords=/什么|哪里|哪儿|哪个|哪些|哪一|怎么|怎样|为什么|为何|多少|是不是|有没有|是否|最近|近来|大概|大约|左右|能不能|可不可以|[了吗呢吧啊呀嘛]/gu;
+const escapeRegExp=value=>value.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+export function relevanceTerms(value){
+  const text=String(value||'').normalize('NFKC').toLowerCase().replace(generalQuestionWords,' ');
+  const latin=[...new Set((text.match(/[a-z0-9][a-z0-9.+-]*/g)||[]).map(token=>token.replace(/[.+-]+$/,'')).filter(token=>token.length>=2||/\d/.test(token)))];
+  const han=[...new Set((text.match(/\p{Script=Han}+/gu)||[]).flatMap(segment=>{const chars=[...segment];return chars.length<2?[]:chars.slice(0,-1).map((char,index)=>char+chars[index+1]);}))];
+  return {latin,han};
+}
+// Share of subject terms found in evidence. Latin/number tokens weigh double because a
+// brand or model token is a stronger identity signal than one Chinese character pair.
+export function subjectCoverage(subject,text){
+  const terms=relevanceTerms(subject),total=terms.latin.length*2+terms.han.length;if(!total)return 1;
+  const haystack=String(text||'').normalize('NFKC').toLowerCase();
+  const hits=terms.latin.filter(token=>new RegExp(`(?:^|[^a-z0-9])${escapeRegExp(token)}(?:$|[^a-z0-9])`).test(haystack)).length*2+terms.han.filter(term=>haystack.includes(term)).length;
+  return hits/total;
+}
 function analyzeGeneralQuestion(query){
   const requestedFacets=evidenceFacets.filter(item=>item.query.test(query)),requestedYears=[...new Set(query.match(/20\d{2}/g)||[])],wantsFresh=/(今天|今日|明天|现在|当前|此刻|实时|最新|近期|今年)/.test(query);
-  let subject=String(query||'').replace(urlPattern,' ');for(const facet of evidenceFacets)subject=subject.replace(facet.query,' ');subject=compactText(subject.replace(requestNoise,' '));
+  let subject=String(query||'').replace(urlPattern,' ');for(const facet of evidenceFacets)subject=subject.replace(facet.query,' ');const subjectText=subject.replace(requestNoise,' ');subject=compactText(subjectText);
   const modelTokens=[...new Set((String(query).toLowerCase().match(/[a-z]+\s*-?\s*\d+[a-z0-9-]*/g)||[]).map(compactText))];
-  return {subject,modelTokens,requestedFacets,requestedYears,wantsFresh};
+  return {subject,subjectText,modelTokens,requestedFacets,requestedYears,wantsFresh};
 }
 function assessGeneralText(query,text){
-  const needs=analyzeGeneralQuestion(query),normalized=compactText(text),subjectMatched=!needs.subject||normalized.includes(needs.subject)||needs.modelTokens.some(token=>normalized.includes(token));
+  const needs=analyzeGeneralQuestion(query),normalized=compactText(text),subjectMatched=!needs.subject||normalized.includes(needs.subject)||needs.modelTokens.some(token=>normalized.includes(token))||subjectCoverage(needs.subjectText,text)>=0.5;
   const matchedFacets=needs.requestedFacets.filter(item=>item.evidence.test(text)).map(item=>item.name),missingFacets=needs.requestedFacets.filter(item=>!item.evidence.test(text)).map(item=>item.name);
   const yearMatched=!needs.requestedYears.length||needs.requestedYears.some(year=>String(text).includes(year)),freshnessMatched=!needs.wantsFresh||needs.requestedYears.length?yearMatched:/(20\d{2}|\d{1,2}月\d{1,2}日|今天|今日|当前|实时|最新|updated|published)/i.test(text);
   return {...needs,subjectMatched,matchedFacets,missingFacets,yearMatched,freshnessMatched};
@@ -181,7 +198,7 @@ export function evaluateSearchEvidence(query,result,{now=new Date(),requireOffic
   const relevantEvidence=relevantParts.join('\n'),assessment=assessGeneralText(query,relevantEvidence),readableRelevantEvidence=relevantParts.some(part=>part.length>=24);
   const sufficient=assessment.subjectMatched&&!assessment.missingFacets.length&&assessment.freshnessMatched&&readableRelevantEvidence;
   let reason='已取得与问题对象、时间范围和所需信息相符的可读资料';
-  if(!assessment.subjectMatched)reason=`现有资料与问题对象“${assessment.subject||query.slice(0,80)}”不相关，需要补充查询`;
+  if(!assessment.subjectMatched)reason=`现有资料与问题对象“${assessment.subject||query.slice(0,80)}”的词面重合较少（可能是不同语言或换了说法），需判断来源是否真正对应所问内容，如不对应再补充查询`;
   else if(assessment.missingFacets.length)reason=`现有资料缺少${assessment.missingFacets.join('、')}，需要读取正文或补充查询`;
   else if(!assessment.freshnessMatched)reason='现有资料缺少所需时间范围或信息日期，需要补充查询';
   else if(!readableRelevantEvidence)reason='与问题相关的来源只有标题、URL或过短摘要，需要读取具体网页';

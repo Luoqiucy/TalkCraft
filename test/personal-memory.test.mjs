@@ -19,3 +19,15 @@ test('双隔离客户端通过用户选择同步取回记忆，访客和其他�
   const other=cloud.createAccount('other-memory@example.com','hash');assert.equal(cloud.relevantMemories(other.id,'TalkCraft').length,0);
  }finally{await a.close();await b.close();await guest.close();cloud.close();}
 }));
+
+test('撤销删除历史会恢复随之删除的派生记忆，用户自己删除的记忆不会被恢复',()=>fixture(path=>{
+ const s=createPersonalMemoryStore(path),owner=s.guestOwner;
+ const kept=s.add(owner,{type:'project',content:'硬件版麦克风项目',reason:'从历史记录保存',sourceRecordId:'record-undo',confirmed:true});
+ const userDeleted=s.add(owner,{type:'term',content:'TalkCraft 术语',reason:'从历史记录保存',sourceRecordId:'record-undo',confirmed:true});
+ s.remove(owner,userDeleted.memoryId);
+ assert.equal(s.removeBySource(owner,'record-undo'),1);assert.equal(s.list(owner).length,0);
+ assert.equal(s.restoreBySource(owner,'record-undo'),1);
+ const restored=s.list(owner);assert.equal(restored.length,1);assert.equal(restored[0].memoryId,kept.memoryId);assert.equal(restored[0].status,'active');
+ assert.equal(s.restoreBySource(owner,'record-undo'),0);
+ s.close();
+}));

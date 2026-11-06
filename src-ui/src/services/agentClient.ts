@@ -27,7 +27,7 @@ const stateForEvent = (event: AgentEvent): AgentTaskState => {
 type WeatherCoordinates = { latitude: number; longitude: number; source: 'device-geolocation'; capturedAt: string };
 type QuestionOptions = { cloudConsent: boolean; webSearch: boolean; status: ServiceStatus; taskId?: string; sessionId?: string; history?: { role: string; content: string; sources?: { sourceId?: string; title?: string; url?: string; snippet?: string; evidenceState?: string; publishedAt?: string; fetchedAt?: string }[] }[]; commercial?: boolean; locationConsent?: boolean; locationCoordinates?: WeatherCoordinates };
 
-export async function askQuestion(text: string, options: QuestionOptions, signal: AbortSignal, onProgress: (event: AgentEvent, state: AgentTaskState) => void, onDelta?: (text: string) => void): Promise<AgentResult> {
+export async function askQuestion(text: string, options: QuestionOptions, signal: AbortSignal, onProgress: (event: AgentEvent, state: AgentTaskState) => void, onDelta?: (text: string) => void, onReset?: () => void): Promise<AgentResult> {
   const { cloudConsent, webSearch, taskId, sessionId, history = [], locationConsent = false, locationCoordinates } = options;
   const modelHistory = history.map(({ role, content }) => ({ role, content }));
   const contextEvidence = history.filter(item => item.role === 'assistant').flatMap(item => (item.sources || []).filter(source => source.snippet?.trim()).map(source => ({ sourceId: source.sourceId, title: source.title?.slice(0, 240), url: source.url, snippet: source.snippet?.slice(0, 360), evidenceState: source.evidenceState, publishedAt: source.publishedAt, fetchedAt: source.fetchedAt }))).slice(-8);
@@ -42,7 +42,7 @@ export async function askQuestion(text: string, options: QuestionOptions, signal
     onProgress(event, stateForEvent(event));
   };
   if (webSearch) {
-    return postStream<AgentResult>('/api/agent', { mode: 'chat', text, webSearch: true, cloudConsent, taskId, sessionId, history: modelHistory, contextEvidence, ...(locationConsent && locationCoordinates ? { locationConsent: true, locationCoordinates } : {}) }, signal, onEvent, onDelta);
+    return postStream<AgentResult>('/api/agent', { mode: 'chat', text, webSearch: true, cloudConsent, taskId, sessionId, history: modelHistory, contextEvidence, ...(locationConsent && locationCoordinates ? { locationConsent: true, locationCoordinates } : {}) }, signal, onEvent, onDelta, onReset);
   }
   const answer = await processText({ mode: 'chat', text, taskId, sessionId, history: modelHistory, cloudConsent }, signal) as AgentResult;
   signal.throwIfAborted();

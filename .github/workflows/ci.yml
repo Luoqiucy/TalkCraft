@@ -1,0 +1,40 @@
+name: CI
+
+# Offline checks for every pull request and every push to main. Tests use local
+# fixtures only; no provider key is configured here and no paid API is called.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Version fields agree
+        run: node scripts/release-version.mjs check
+      - name: Syntax checks
+        run: npm run check
+      - name: Tests
+        run: npm test
+      - name: React type check and build
+        run: |
+          npm run react:check
+          npm run react:build

@@ -212,3 +212,22 @@ test('账号记忆与本机记忆使用同一水果关系检索，不把偶尔�
  assert.deepEqual(new Set(behavior.map(item=>item.memoryId)),new Set(['fruit-banana','fruit-apple']));
  assert.equal(behavior.find(item=>item.memoryId==='fruit-apple').fact.frequency,'occasional');
 }));
+
+test('供应商失败退回预留后，用户用同一任务重试可以再次预留；已结算任务仍拒绝重复', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'talkcraft-commercial-retry-'));
+  const store = createCommercialStore(join(directory, 'commercial.sqlite'));
+  try {
+    const account = store.createAccount('retry@example.com', 'hash');
+    const task = { accountId: account.id, taskId: '11111111-1111-4111-8111-111111111111', metric: 'ai_characters', periodId: '2026-11', quantity: 5, limit: 20 };
+    assert.equal(store.reserve(task).created, true);
+    store.finish({ ...task, cancel: true });
+    assert.equal(store.usage(account.id, '2026-11', 'ai_characters', 20).remaining, 20);
+    const retry = store.reserve(task);
+    assert.equal(retry.created, true); assert.equal(retry.retried, true);
+    assert.equal(store.usage(account.id, '2026-11', 'ai_characters', 20).reserved, 5);
+    assert.equal(store.reserve(task).created, false);
+    store.finish({ ...task, actualQuantity: 5 });
+    assert.equal(store.reserve(task).created, false);
+    assert.equal(store.usage(account.id, '2026-11', 'ai_characters', 20).used, 5);
+  } finally { store.close(); await rm(directory, { recursive: true, force: true }); }
+});
