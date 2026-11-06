@@ -29,5 +29,5 @@
 - 首个上传到私有仓库的开发版基线：语音听写、提示词整理、翻译、联网问答，Windows（Tauri）开发版与 macOS 开发构建。
 
 [Unreleased]: https://github.com/Luoqiucy/TalkCraft/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/Luoqiucy/TalkCraft/compare/v0.1.0...v0.2.0
+[0.2.0]: https://github.com/Luoqiucy/TalkCraft/compare/e606c4e...v0.2.0
 [0.1.0]: https://github.com/Luoqiucy/TalkCraft/tree/e606c4e
