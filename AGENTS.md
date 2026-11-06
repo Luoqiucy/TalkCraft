@@ -6,3 +6,5 @@
 - 若应用正在运行，停止替换并告知需保存录音后退出；不得为了清理或构建擅自结束用户进程。
 - 不删除 `.tools`、`node_modules`、构建依赖及测试工具中的 EXE；本规则仅管理项目应用交付文件。
 - 后续报告和启动说明统一链接最新入口。当前仅开发版，安装包按用户要求留到 Phase 4。
+- 源码同步到私有仓库 `Luoqiucy/TalkCraft`，流程见 `docs/RELEASE.md`：从 `main` 建 `feat/` `fix/` `docs/` `chore/` 分支，提交信息用 Conventional Commits，用户可见改动记入 `CHANGELOG.md` 的 `[Unreleased]`，推送后开拉取请求并等 CI 通过；不直接推送 `main`。
+- 发版用 `node scripts/release-version.mjs set X.Y.Z` 统一改版本号，合并后推送 `vX.Y.Z` 标签，由 Release 工作流生成 GitHub Release 作为更新通知。合并、打标签和发布前先征得用户同意，除非用户已明确授权自动发布。

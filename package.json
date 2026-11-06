@@ -1,6 +1,6 @@
 {
   "name": "wireless-ai-mic",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -25,7 +25,9 @@
     "audit:asr-corpus": "node scripts/asr-corpus-audit.mjs",
     "collect:asr": "node scripts/asr-batch.mjs",
     "check": "node --check server.mjs && node --check src/asr-compare.mjs && node --check scripts/asr-compare.mjs && node --check scripts/asr-one.mjs && node --check src/commercial/sqlite-store.mjs && node --check src/commercial/gateway.mjs && node --check src/commercial/desktop-bridge.mjs && node --check scripts/commercial-gateway.mjs && node --check src/pipeline.mjs && node --check src/file-config.mjs && node --check src/providers/deepseek-search.mjs && node --check src/search-orchestrator.mjs && node --check src/agent/router.mjs && node --check src/agent/langchain-tools.mjs && node --check src/agent/langchain-model.mjs && node --check src/agent/langgraph-weather.mjs && node --check src/tools/registry.mjs && node --check src/tools/webpage.mjs && node --check src/tools/weather.mjs && node --check scripts/asr-file.mjs && node --check scripts/asr-benchmark.mjs && node --check scripts/asr-batch.mjs && node --check scripts/asr-corpus-audit.mjs && node --check src/asr-benchmark.mjs && node --check src/asr-batch.mjs && node --check src/config.mjs && node --check src/providers/text.mjs && node --check src/providers/ark.mjs && node --check src/providers/volcengine-asr.mjs && node --check src/asr.mjs && node --check public/app.mjs && node --check public/recording.mjs && node --check public/audio.mjs && node --check public/conversation.mjs && node --check scripts/desktop-doctor.mjs && node --check scripts/desktop.mjs && node --check scripts/tooling-env.mjs && node --check public/shell.mjs && node --check src/workspace.mjs && node --check public/translation.mjs && node --check src/providers/volcengine-protocol.mjs && node --check src/providers/asr-session.mjs && node --check src/providers/asr-transport.mjs && node --check src/providers/asr-diagnostic.mjs && node --check src/providers/asr-config.mjs && node --check src/telemetry.mjs && node --check public/live-ui.mjs && node --check public/live-state.mjs",
-    "sample:asr": "node scripts/asr-one.mjs"
+    "sample:asr": "node scripts/asr-one.mjs",
+    "version:check": "node scripts/release-version.mjs check",
+    "version:set": "node scripts/release-version.mjs set"
   },
   "engines": {
     "node": ">=22"
