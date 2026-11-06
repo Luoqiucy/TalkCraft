@@ -4,6 +4,10 @@ import {answerDaisyQuestion} from '../src/agent/daisy-question.mjs';
 import {resolveQuestionContext} from '../src/agent/question-context.mjs';
 import {createServer} from '../server.mjs';
 import {createJsonTextProvider} from '../src/providers/ark.mjs';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {createHistoryStore} from '../src/local-history.mjs';
 
 const call=(id,name,args)=>({id,type:'function',function:{name,arguments:JSON.stringify(args)}});
 const now=new Date('2026-11-06T10:00:00+08:00');
@@ -105,7 +109,8 @@ test('超出来源数量的引用序号被删除，不留下点不开的引用',
 
 test('/api/agent 在撤回开场白时向界面发送 answer_reset',async t=>{
  let turns=0;const provider={id:'deepseek',model:'test',simulated:true,async streamWithTools(_messages,{onDelta}){turns++;if(turns===1){onDelta('我先查一下。');return {content:'我先查一下。',toolCalls:[call('s','search_web',{query:'苏州博物馆 开放时间'})]};}onDelta('苏州博物馆周一闭馆[1]。');return {content:'苏州博物馆周一闭馆[1]。',toolCalls:[]};},async search(){return {performed:true,sources:[{url:'https://museum.example/a',title:'苏州博物馆',snippet:'苏州博物馆周一闭馆。'}]};}};
- const server=createServer({provider,weatherTool:{enabled:false},webpageTool:{enabled:false}});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
+ // Temp history so the test never opens the user's real data directory.
+ const dir=await mkdtemp(join(tmpdir(),'talkcraft-agent-reset-'));const server=createServer({history:createHistoryStore(join(dir,'history')),provider,weatherTool:{enabled:false},webpageTool:{enabled:false},usageStore:{record:async()=>{}}});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));t.after(async()=>{await new Promise(resolve=>server.close(resolve));await rm(dir,{recursive:true,force:true});});
  const response=await fetch(`http://127.0.0.1:${server.address().port}/api/agent`,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/x-ndjson'},body:JSON.stringify({mode:'chat',text:'苏州博物馆的开放时间是什么',webSearch:true,cloudConsent:true})});
  const lines=(await response.text()).trim().split('\n').map(JSON.parse),answerLines=lines.filter(item=>item.type.startsWith('answer_'));
  assert.deepEqual(answerLines.map(item=>item.type),['answer_delta','answer_reset','answer_delta']);assert.equal(answerLines.at(-1).text,'苏州博物馆周一闭馆[1]。');assert.equal(lines.at(-1).data.text,'苏州博物馆周一闭馆[1]。');

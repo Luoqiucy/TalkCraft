@@ -95,6 +95,8 @@ export function WorkbenchApp() {
   const activeTaskId = useRef('');
   const historyQueue = useRef<Promise<unknown>>(Promise.resolve());
   const pendingQuestion = useRef('');
+  // Recording whose transcription is in flight; cancel() must close its history record.
+  const transcribingTask = useRef<{ id: string; mode: WorkMode } | null>(null);
   const timer = useRef<number | null>(null);
   const hudPacket = useRef<Record<string, unknown>>({});
   const latest = useRef({ mode, agreement, status, draft, webSearch, tone, targetLanguage, conversation, memoryLoading, commercialMode, commercialStatus, weatherLocationAllowed, weatherLocation,preferences });
@@ -144,7 +146,13 @@ export function WorkbenchApp() {
     const value = activeMode === 'dictation' ? input : input.trim();
     if (!value.trim() || value.length > (activeMode === 'chat' ? 4000 : 12000)) { setError('请输入有效文字，问答最多4000字，其他模式最多12000字'); return; }
     let questionHistory=config.conversation;
-    if(activeMode==='chat'&&controller.current){const previousQuestion=pendingQuestion.current;controller.current.abort();controller.current=null;activeTaskId.current='';if(previousQuestion.trim())questionHistory=[...config.conversation,{role:'user',content:previousQuestion}];setConversation(questionHistory);}
+    if(activeMode==='chat'&&controller.current){const previousQuestion=pendingQuestion.current,previousTaskId=activeTaskId.current;controller.current.abort();controller.current=null;activeTaskId.current='';
+      // Keep the interrupted question as context, but as a complete user/assistant
+      // pair: an unpaired turn makes every later request fail history validation.
+      if(previousQuestion.trim()){questionHistory=appendConversation(config.conversation,previousQuestion,'（上一问被新问题打断，未生成回答）');setConversation(questionHistory);}
+      // The aborted request returns early, so mark its history record here; a record
+      // left as "processing" cannot be deleted until the app restarts.
+      if(previousTaskId&&previousTaskId!==id)void patch({id:previousTaskId,mode:'chat',status:'cancelled',error:'被新问题打断',attempt:{stage:'ai',status:'cancelled'}});}
     const explicitMemory=activeMode==='chat'?parseExplicitMemoryCommand(value):null;
     if(explicitMemory){const {content,query:followup,type}=explicitMemory;try{await createMemory({type,content,reason:`用户明确提出“记住”：${value.slice(0,300)}`,sourceRecordId:null,independent:true,syncSelected:false});setNotice('已保存为本机个人记忆；未发送给搜索服务');setError('');if(followup){setDraft(followup);return processCurrent(followup,activeMode,id,automatic);}setResult({text:'已保存为本机个人记忆。你可以在“个人记忆”中查看、修改或删除；默认不会同步到云端。'});setDraft('');setState('completed');return;}catch(cause){setError(cause instanceof Error?cause.message:'记忆保存失败');return;}}
     if (activeMode === 'chat' && config.memoryLoading) { setError('正在恢复本机问答上下文，请稍后重试'); return; }
@@ -219,7 +227,7 @@ export function WorkbenchApp() {
     void patch({ id: current.id, mode: current.mode, status: 'recorded', duration });
     void queueHistory(() => saveHistoryAudio(current.id, blob));
     if (latest.current.commercialMode ? !latest.current.commercialStatus?.signedIn || !latest.current.commercialStatus?.asrReady : !latest.current.status?.audioTranscription) { setState('completed'); setNotice(latest.current.commercialMode ? '账号语音服务不可用；录音仍可回放和导出' : '录音可回放和导出；语音识别未配置，未提交转写'); return; }
-    const active = new AbortController(); controller.current = active; setState('transcribing'); setNotice('正在准备录音数据…');
+    const active = new AbortController(); controller.current = active; transcribingTask.current = { id: current.id, mode: current.mode }; setState('transcribing'); setNotice('正在准备录音数据…');
     const started = Date.now();
     try {
       const audio = await recordingToPcm(blob, active.signal);
@@ -231,7 +239,7 @@ export function WorkbenchApp() {
       const asr = await transcribePcm(audio.pcm, latest.current.agreement, active.signal, current.id, latest.current.commercialMode);
       active.signal.throwIfAborted();
       if (ticket !== generation.current) return;
-      setTranscript(asr.text);
+      setTranscript(asr.text); transcribingTask.current = null;
       if (!asr.simulated) setUsageRefresh(old => old + 1);
       setState('completed');
       setNotice(asr.simulated ? '模拟转写，未识别真实音频' : '转写完成；检查原文后可使用或继续处理');
@@ -243,7 +251,7 @@ export function WorkbenchApp() {
       setState(cancelled ? 'cancelled' : 'failed');
       if (!cancelled) setError(cause instanceof Error ? cause.message : '转写失败');
       void patch({ id: current.id, mode: current.mode, status: cancelled ? 'cancelled' : 'asr-failed', error: cancelled ? '用户取消' : cause instanceof Error ? cause.message : '转写失败', attempt: { stage: 'asr', status: cancelled ? 'cancelled' : 'failed', elapsedMs: Date.now() - started } });
-    } finally { if (controller.current === active) controller.current = null; }
+    } finally { if (controller.current === active) controller.current = null; if (transcribingTask.current?.id === current.id) transcribingTask.current = null; }
   };
 
   useEffect(() => {
@@ -307,6 +315,9 @@ export function WorkbenchApp() {
     const processingCancelled = Boolean(controller.current); controller.current?.abort(); const captureCancelled = session.current?.cancel() ?? false;
     generation.current++;
     if (task.current && capturing) void patch({ id: task.current.id, mode: task.current.mode, status: 'cancelled', error: '用户取消' });
+    // The transcription catch block returns early after this generation bump, so close
+    // the record here; a record left as transcribing cannot be deleted until restart.
+    else if (transcribingTask.current) { const stuck = transcribingTask.current; transcribingTask.current = null; void patch({ id: stuck.id, mode: stuck.mode, status: 'cancelled', error: '用户取消', attempt: { stage: 'asr', status: 'cancelled' } }); }
     setPartialAnswer(''); setNotice(''); setState('cancelled'); setCapture('idle');
     return processingCancelled || captureCancelled;
   };
