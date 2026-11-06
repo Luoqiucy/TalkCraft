@@ -12,7 +12,7 @@ export async function postJson<T>(url: string, input: unknown, signal?: AbortSig
   return body as T;
 }
 
-export async function postStream<T>(url: string, input: unknown, signal: AbortSignal, onEvent: (event: Record<string, unknown>) => void, onDelta?: (text: string) => void): Promise<T> {
+export async function postStream<T>(url: string, input: unknown, signal: AbortSignal, onEvent: (event: Record<string, unknown>) => void, onDelta?: (text: string) => void, onReset?: () => void): Promise<T> {
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/x-ndjson' },
@@ -33,6 +33,9 @@ export async function postStream<T>(url: string, input: unknown, signal: AbortSi
     const message = JSON.parse(line) as { type?: string; event?: Record<string, unknown>; data?: T; error?: string; text?: string };
     if (message.type === 'progress' && message.event) onEvent(message.event);
     if (message.type === 'answer_delta' && typeof message.text === 'string') onDelta?.(message.text);
+    // The server withdrew text it had streamed (a tool-call preamble or a draft it
+    // sent back for more evidence); the next deltas start the answer over.
+    if (message.type === 'answer_reset') onReset?.();
     if (message.type === 'error') throw new Error(message.error || '请求失败');
     if (message.type === 'result') result = message.data;
   };

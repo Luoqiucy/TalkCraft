@@ -33,8 +33,12 @@ function companyNewsIntent(text,now){
  candidate=candidate.replace(newsFillerPrefix,'');
  candidate=candidate.replace(/(?:最近|近期|近来|当前|现在|最新|这几天|今天|今日|昨天|近\d+天|过去\d+天).{0,14}(?:新闻|热点|消息|动态|资讯|报道).*$/u,'').replace(/(?:有什么|有啥|有没有).{0,8}(?:新闻|热点|消息|动态|资讯|报道).*$/u,'').replace(/(?:新闻|热点|消息|动态|资讯|报道).*$/u,'').replace(/(?:的|有关的)$/u,'').replace(/(?:公司|企业|集团)$/u,'').trim();
  if(/^(?:(?:官方|媒体)(?:(?:与|和)(?:官方|媒体))?|最近\s*\d+天|过去\s*\d+天|近\s*\d+天)$/u.test(candidate))candidate='';
- const topic=candidate&&newsTopicOnly.test(candidate)&&!/^(?:热点|热门|头条|重要|重大|主要|大)+$/u.test(candidate)?candidate:'';
- if(!candidate||newsTopicOnly.test(candidate))candidate='';
+ const topicCore=candidate.replace(/(?:圈|界|领域|行业|板块|方面|相关)$/u,''),isTopic=!!topicCore&&newsTopicOnly.test(topicCore);
+ // "有什么财经新闻" removes the topic together with the question words, so read the
+ // topic straight from the words in front of the news noun as well.
+ const nearTopic=String(text).match(/(国内|国际|世界|全球|科技|财经|金融|经济|股市|体育|娱乐|军事|社会|政治|时政|教育|健康|汽车|手机|游戏|AI|人工智能|互联网)(?:圈|界|领域|行业|板块|方面)?(?:的|相关的?)?(?:大|重要|重大|热门|热点)?(?:新闻|热点|消息|动态|资讯|报道)/iu)?.[1]||'';
+ const topic=isTopic&&!/^(?:热点|热门|头条|重要|重大|主要|大)+$/u.test(topicCore)?topicCore:!candidate||isTopic?nearTopic:'';
+ if(!candidate||isTopic)candidate='';
  const explicitDays=/(?:过去|最近|近)\s*(\d{1,2})\s*天/u.exec(text)?.[1];
  const lookbackDays=explicitDays?Math.min(30,Math.max(1,Number(explicitDays))):/(?:今天|今日|当天)/u.test(text)?1:/(?:昨天|昨日)/u.test(text)?2:7;
  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(now),fromDate=new Date(`${today}T00:00:00Z`);fromDate.setUTCDate(fromDate.getUTCDate()-lookbackDays+1);

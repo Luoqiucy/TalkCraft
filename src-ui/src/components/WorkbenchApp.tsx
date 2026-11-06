@@ -172,7 +172,7 @@ export function WorkbenchApp() {
         if (controller.current !== active || active.signal.aborted) return;
         setEvents(old => old.some(item => item.eventId && item.eventId === event.eventId) ? old : [...old, event].sort((a, b) => (a.sequence ?? 999) - (b.sequence ?? 999)));
         setState(next);
-        }, chunk => { if (controller.current === active && !active.signal.aborted) setPartialAnswer(old => old + chunk); });
+        }, chunk => { if (controller.current === active && !active.signal.aborted) setPartialAnswer(old => old + chunk); }, () => { if (controller.current === active && !active.signal.aborted) setPartialAnswer(''); });
       }
       else if (!config.commercialMode && config.status?.provider === 'deepseek' && (activeMode === 'prompt' || activeMode === 'translate')) {
         setState('answering');
