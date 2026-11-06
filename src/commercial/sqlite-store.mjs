@@ -86,6 +86,16 @@ export function createCommercialStore(path) {
     requireValue(validId(taskId) && validId(periodId) && metrics.has(metric) && validNumber(quantity) && quantity > 0 && validNumber(limit), 'INVALID_INPUT', '预留参数无效');
     return transaction(() => {
       const previous = task(accountId, taskId, metric);
+      // A cancelled task was refunded in full, so the user's retry may reserve it
+      // again; reserved and settled tasks stay idempotent to avoid a second
+      // provider call or a second charge.
+      if (previous?.state === 'cancelled') {
+        requireValue(usage(accountId, periodId, metric, limit).remaining >= quantity, 'QUOTA_EXCEEDED', '本期额度不足');
+        const time = at();
+        db.prepare("UPDATE usage_tasks SET period_id=?,reserved=?,actual=0,state='reserved',finished_at=NULL WHERE account_id=? AND task_id=? AND metric=?").run(periodId, quantity, accountId, taskId, metric);
+        db.prepare('INSERT INTO usage_events(id,account_id,task_id,metric,period_id,kind,quantity,at) VALUES(?,?,?,?,?,?,?,?)').run(randomUUID(), accountId, taskId, metric, periodId, 'reserve', quantity, time);
+        return { created: true, state: 'reserved', retried: true };
+      }
       if (previous) {
         requireValue(previous.period_id === periodId && previous.reserved === quantity, 'IDEMPOTENCY_CONFLICT', '同一任务参数冲突');
         return { created: false, state: previous.state };

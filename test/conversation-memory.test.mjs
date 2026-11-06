@@ -38,3 +38,15 @@ test('每轮回答保留各自来源，恢复历史后引用不串轮，敏感�
  assert.equal(withMissing[1].sources[0].url, '');
  assert.equal(withMissing[1].sources[1].url, 'https://valid.example/second');
 });
+
+test('被新问题打断的问答以完整一问一答保留，后续请求仍能通过历史校验', async () => {
+  const { validateHistory } = await import('../public/conversation.mjs');
+  const before = appendConversation([], '南京天气怎么样', '南京今天晴。');
+  // Old behaviour: an unpaired user turn made every later request fail.
+  assert.throws(() => validateHistory([...before, { role: 'user', content: '那杭州呢' }]), /问答历史/);
+  const interrupted = appendConversation(before, '那杭州呢', '（上一问被新问题打断，未生成回答）');
+  assert.equal(interrupted.length, 4);
+  assert.doesNotThrow(() => validateHistory(interrupted.map(({ role, content }) => ({ role, content }))));
+  const next = appendConversation(interrupted, '明天呢', '杭州明天多云。');
+  assert.doesNotThrow(() => validateHistory(next.map(({ role, content }) => ({ role, content }))));
+});
