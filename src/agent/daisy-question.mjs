@@ -18,6 +18,8 @@ const hedged=value=>/(尚未查到|未查到|没有查到|没找到|未找到|�
 // questions are judged by the model reading real sources, because a word-overlap
 // check cannot tell that an English page answers a Chinese question.
 const strictEvidenceIntents=new Set(['product-research','company-news','news-search']);
+// Video and social hosts return players or app shells, not readable text.
+const noReadableText=/(?:^|\.)(?:youtube\.com|youtu\.be|bilibili\.com|douyin\.com|tiktok\.com|x\.com|twitter\.com|instagram\.com|facebook\.com|weibo\.com)$/i;
 const scrubMemoryFromPublicQuery=(query,memories,original)=>{let output=String(query||'');for(const item of memories){const phrase=compact(item.content);if(phrase.length>=4&&!compact(original).includes(phrase))output=output.replace(new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'giu'),' ');}return (compact(output)||compact(original)).slice(0,3000);};
 const hasUnsupportedToolMarkup=value=>/(?:\bDSML\b|<\|[^>]{1,80}\|>|\bassistant\s+to=|\bfunction_calls\b)/i.test(String(value||''));
 function reconcileLatestClaims(value,{requested,confirmed,reason}={}){
@@ -56,7 +58,7 @@ function ambiguousCandidateNames(request,sources){
   return [...names.values()].slice(0,4);
 }
 
-export async function answerDaisyQuestion(provider,input,{signal,weatherTool,webpageTool,registry=createAgentToolRegistry({provider,weatherTool,webpageTool}),taskId=randomUUID(),onStatus=()=>{},onDelta=()=>{},onReset=()=>{},now=new Date(),maxToolCalls=6,totalTimeoutMs=45000,maxResults=8,prefetchPages=0,prefetchTimeoutMs=6000}={}){
+export async function answerDaisyQuestion(provider,input,{signal,weatherTool,webpageTool,registry=createAgentToolRegistry({provider,weatherTool,webpageTool}),taskId=randomUUID(),onStatus=()=>{},onDelta=()=>{},onReset=()=>{},now=new Date(),maxToolCalls=6,totalTimeoutMs=45000,maxResults=8,prefetchPages=0,prefetchTimeoutMs=4000}={}){
   const request=input?.request&&typeof input.request==='object'?input.request:{};
   const originalQuestion=compact(request.originalText||input?.originalText||input?.text),question=compact(request.resolvedQuestion||input?.text||originalQuestion);if(!question)throw new Error('问答内容不能为空');
   if(request.needsClarification===true&&(request.action==='needs-clarification'||request.intent==='weather')){const prompt=compact(request.clarificationQuestion)||'请补充一个必要信息后我再继续查询。';return {result:{taskId:request.taskId||taskId,tool:'none',performed:false,requested:false,status:'needs-input',sources:[],elapsedMs:0,attempts:0,toolCalls:0,toolTrace:[],quality:{intent:request.intent||'general',sufficient:false,reason:'请求缺少必要字段，尚未调用模型或工具'},terminationReason:'awaiting-user-input',engine:'request-understanding',frameworks:{langchain:false,langgraph:false},diagnostics:{originalQuestion,resolvedQuestion:question,needsClarification:true,context:request.provenance||{}}},answer:{mode:'chat',text:prompt}};}
@@ -107,7 +109,7 @@ export async function answerDaisyQuestion(provider,input,{signal,weatherTool,web
       const candidates=[];
       for(const raw of results){
         const url=safeSourceUrl(raw?.url),known=url&&sources.find(item=>item.url===url);
-        if(!known||pageCache.has(url)||known.evidenceState==='read'||known.evidenceState==='read-failed'||String(known.snippet||'').length>=300)continue;
+        if(!known||pageCache.has(url)||known.evidenceState==='read'||known.evidenceState==='read-failed'||String(known.snippet||'').length>=300||noReadableText.test(known.domain||''))continue;
         candidates.push(known);if(candidates.length>=Math.min(3,prefetchLimit-prefetchedPages))break;
       }
       if(!candidates.length)return;

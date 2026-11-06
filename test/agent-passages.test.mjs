@@ -30,3 +30,19 @@ test('工具单次限时到期记为失败，不当作用户取消',async()=>{
  const controller=new AbortController();const pending=registry.execute('read_webpage',{url:'https://slow.example'},{signal:controller.signal,timeoutMs:5000});controller.abort();
  await assert.rejects(pending,{name:'AbortError'});
 });
+
+test('正常网页带有验证码组件或样式时仍可读取，真正的拦截页才判为拦截',async()=>{
+ const {extractReadablePage}=await import('../src/tools/webpage.mjs');
+ const article='英伟达股价收于182.25美元，当日下跌约9%。'.repeat(80);
+ const normal=`<html><head><title>NVDA</title><style>.RecaptchaAcknowledgement{color:#747474}</style><script>window.grecaptcha={}</script></head><body><main><p>${article}</p></main></body></html>`;
+ assert.match(extractReadablePage(normal,{url:'https://news.example/nvda'}).text,/182\.25/);
+ assert.throws(()=>extractReadablePage('<html><title>Verify</title><body>Captcha: verify you are human</body></html>',{url:'https://example.com'}),/要求验证/);
+ assert.throws(()=>extractReadablePage('<html><body><p>请完成安全验证后继续访问本站内容</p></body></html>',{url:'https://example.com'}),/要求验证/);
+});
+
+test('1 MiB 的正常网页不再因 512 KiB 上限被拒绝',async()=>{
+ const {readResponseBody}=await import('../src/tools/webpage.mjs');const {Readable}=await import('node:stream');
+ const html=`<html><body><main>${'<p>段落内容</p>'.repeat(90000)}</main></body></html>`,body=Buffer.from(html);assert.ok(body.length>1024*1024);
+ const response=Object.assign(Readable.from([body]),{headers:{'content-type':'text/html; charset=utf-8','content-length':String(body.length)}});
+ const result=await readResponseBody(response);assert.equal(result.decompressedBytes,body.length);
+});
