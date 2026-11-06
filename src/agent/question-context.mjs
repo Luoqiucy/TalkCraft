@@ -23,18 +23,23 @@ function resolveCorrection(text){
  if(replaceLocation){const prefix=replaceLocation[1].trim();return {resolvedText:`${prefix?`${prefix}，`:''}${replaceLocation[3].trim()}`,retracted:replaceLocation[2].trim(),replacement:replaceLocation[3].trim(),source:'same-turn-correction'};}
  return {resolvedText:String(text||'').trim().replace(/一{2,}(周|星期|礼拜)/u,'一$1'),retracted:'',replacement:'',source:''};
 }
+// Words that describe when/how broad the news is, never which company it is about.
+const newsFillerPrefix=/^(?:(?:那你|那么你|那|帮我|请问|麻烦|帮|请|给我|跟我|和我|我想|想|讲讲|讲一讲|说说|说一说|聊聊|告诉我|搜一下|搜索|查一下|查找|查询|检索|了解一下|看看|看一下|联网|网上|主要看|优先看|只看|今天|今日|昨天|昨日|当天|本周|这周|这一周|最近|近期|近来|当前|现在|最新|这几天|一下|有关|关于|的)\s*)+/u;
+const newsTopicOnly=/^(?:国内|国际|世界|全球|科技|行业|财经|金融|经济|股市|体育|娱乐|军事|社会|政治|时政|教育|健康|汽车|手机|游戏|AI|人工智能|互联网|热点|热门|头条|重要|重大|主要|大)+$/iu;
 function companyNewsIntent(text,now){
  if(!/(?:新闻|热点|消息|动态|资讯|报道)/u.test(text))return null;
  if(productCategory.test(text)&&/(?:型号|配置|参数|价格|多少钱|哪一款|哪一个|是什么型号|具体型号)/u.test(text))return null;
  let candidate=String(text).split(/(?:比如说?|例如|譬如)/u).at(-1)||String(text);candidate=candidate.split(/[，,。；;！？?]/u)[0];
- candidate=candidate.replace(/^(?:(?:那你|那么你|那|帮我|请问|麻烦|帮|请|给我|我想|想|搜一下|搜索|查一下|查找|查询|检索|了解一下|看看|联网|网上|主要看|优先看|只看)\s*)+/u,'');
- candidate=candidate.replace(/(?:最近|近期|近来|当前|现在|最新|这几天|近\d+天|过去\d+天).{0,14}(?:新闻|热点|消息|动态|资讯|报道).*$/u,'').replace(/(?:有什么|有啥|有没有).{0,8}(?:新闻|热点|消息|动态|资讯|报道).*$/u,'').replace(/(?:新闻|热点|消息|动态|资讯|报道).*$/u,'').replace(/(?:公司|企业|集团)$/u,'').trim();
+ candidate=candidate.replace(newsFillerPrefix,'');
+ candidate=candidate.replace(/(?:最近|近期|近来|当前|现在|最新|这几天|今天|今日|昨天|近\d+天|过去\d+天).{0,14}(?:新闻|热点|消息|动态|资讯|报道).*$/u,'').replace(/(?:有什么|有啥|有没有).{0,8}(?:新闻|热点|消息|动态|资讯|报道).*$/u,'').replace(/(?:新闻|热点|消息|动态|资讯|报道).*$/u,'').replace(/(?:的|有关的)$/u,'').replace(/(?:公司|企业|集团)$/u,'').trim();
  if(/^(?:(?:官方|媒体)(?:(?:与|和)(?:官方|媒体))?|最近\s*\d+天|过去\s*\d+天|近\s*\d+天)$/u.test(candidate))candidate='';
- if(!candidate||/^(?:国内|国际|世界|科技|行业)$/u.test(candidate))candidate='';
- const lookbackDays=/(?:过去|最近|近)\s*(\d{1,2})\s*天/u.exec(text)?.[1]?Math.min(30,Math.max(1,Number(/(?:过去|最近|近)\s*(\d{1,2})\s*天/u.exec(text)[1]))):/(?:最近一周|近一周|过去一周|这周|本周)/u.test(text)?7:7;
+ const topic=candidate&&newsTopicOnly.test(candidate)&&!/^(?:热点|热门|头条|重要|重大|主要|大)+$/u.test(candidate)?candidate:'';
+ if(!candidate||newsTopicOnly.test(candidate))candidate='';
+ const explicitDays=/(?:过去|最近|近)\s*(\d{1,2})\s*天/u.exec(text)?.[1];
+ const lookbackDays=explicitDays?Math.min(30,Math.max(1,Number(explicitDays))):/(?:今天|今日|当天)/u.test(text)?1:/(?:昨天|昨日)/u.test(text)?2:7;
  const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(now),fromDate=new Date(`${today}T00:00:00Z`);fromDate.setUTCDate(fromDate.getUTCDate()-lookbackDays+1);
  const start=new Intl.DateTimeFormat('en-CA',{timeZone:'UTC',year:'numeric',month:'2-digit',day:'2-digit'}).format(fromDate);
- return {intent:candidate?'company-news':'news-search',tool:'web-search',subject:candidate,news:{company:candidate,lookbackDays,fromDate:start,toDate:today,defaulted:!/(最近|近期|近来|近\d+天|过去\d+天|过去一周|最近一周|本周|这周)/u.test(text),requestedContent:['事件','事件发生时间','报道发布时间','来源']}};
+ return {intent:candidate?'company-news':'news-search',tool:'web-search',subject:candidate,news:{company:candidate,...(topic?{topic}:{}),lookbackDays,fromDate:start,toDate:today,defaulted:!/(最近|近期|近来|近\d+天|过去\d+天|过去一周|最近一周|本周|这周|今天|今日|当天|昨天|昨日)/u.test(text),requestedContent:['事件','事件发生时间','报道发布时间','来源']}};
 }
 function newsLookback(text,fallback=7){const value=String(text||''),days=value.match(/(?:最近|过去|近)\s*(\d{1,2}|一|二|两|三|四|五|六|七|八|九|十)\s*天/u)?.[1];if(days){const chinese={一:1,二:2,两:2,三:3,四:4,五:5,六:6,七:7,八:8,九:9,十:10};return Math.max(1,Math.min(30,Number(chinese[days]||days)));}if(/最近一周|近一周|过去一周|这周|本周/u.test(value))return 7;return fallback;}
 function priorNewsState(history,now){let state=null;for(const item of history){const text=String(item.content||'').trim(),explicit=companyNewsIntent(text,now);if(explicit?.news?.company){state=explicit;continue;}if(explicit&&!explicit.news?.company){const adjusted=state&&newsFollowup(text,state,now);if(adjusted)state=adjusted;else if(!state)state=explicit;continue;}if(!state)continue;const days=newsLookback(text,state.news.lookbackDays);if(/(?:最近|过去|近)\s*\d{1,2}\s*天|(?:最近|过去|近)[一二两三四五六七八九十]天|最近一周|近一周|过去一周|这周|本周/u.test(text)){state=companyNewsIntent(`${state.news.company} 最近${days}天新闻`,now)||state;continue;}const adjusted=newsFollowup(text,state,now);if(adjusted){state=adjusted;continue;}if(parseWeatherQuestion(text,{now})||parseProduct(text)||/(?:解释|说明|翻译|改写|写一封|整理这段)/u.test(text))state=null;}return state;}
