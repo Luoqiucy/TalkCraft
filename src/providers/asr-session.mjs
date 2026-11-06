@@ -1,4 +1,4 @@
-import {AsrDiagnosticError,serviceFailure} from './asr-diagnostic.mjs';
+import {AsrDiagnosticError,serviceFailure,noSpeechFailure} from './asr-diagnostic.mjs';
 import {encodeAsrInit,encodeAsrAudio,parseAsrResponse} from './volcengine-protocol.mjs';
 // Transport contract: on/off, connect(), send(frame), close(). Operations may
 // return promises. Default termination marks the last PCM chunk. An explicit
@@ -33,7 +33,7 @@ export async function runAsrSession({transport,pcm,terminalFrame,signal,timeoutM
       }
       if(parsed.final && !terminalSent)throw new Error('ASR会话提前结束');
       if(!initialized){initialized=true;resolveInit();}
-      if(parsed.final){const text=parsed.payload?.result?.text;if(typeof text!=='string' || !text.trim() || text.length>12000)throw new Error('ASR最终文本无效');finished=true;resolveFinal(text.trim());}
+      if(parsed.final){const text=parsed.payload?.result?.text;if(text===undefined || text===null || (typeof text==='string'&&!text.trim()))throw noSpeechFailure();if(typeof text!=='string' || text.length>12000)throw new Error('ASR最终文本无效');finished=true;resolveFinal(text.trim());}
     }catch(error){if(error instanceof AsrDiagnosticError){fail(error);return;}fail(new Error(error.message==='ASR协议响应无效'?error.message:error.message==='ASR最终文本无效'?error.message:error.message==='ASR会话提前结束'?error.message:'ASR服务返回错误，请检查凭据和服务权限'));}
   }
   const closed=()=>fail(new Error('ASR连接提前断开'));

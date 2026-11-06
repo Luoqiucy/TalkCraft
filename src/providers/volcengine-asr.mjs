@@ -16,7 +16,7 @@ export function createVolcengineAsrProvider({env=process.env,transportFactory=cr
         if(error?.name==='AbortError')throw error;
         const timeout=error?.message==='ASR会话超时';
         const safe=new Error(error instanceof AsrDiagnosticError ? error.message : timeout?'语音识别超时，请保留音频后重试':'语音识别失败，请检查网络、凭据和模型服务');
-        safe.status=timeout?504:502;throw safe;
+        safe.status=error instanceof AsrDiagnosticError && error.status===422?422:timeout?504:502;throw safe;
       }
     }
   });

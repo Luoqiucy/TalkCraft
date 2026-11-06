@@ -8,7 +8,23 @@ import {createAsrTransport} from '../src/providers/asr-transport.mjs';
 import {loadAsr} from '../src/asr.mjs';
 import {createServer} from '../server.mjs';
 const env={VOLC_ASR_RESOURCE_ID:'volc.seedasr.sauc.duration',VOLC_ASR_APP_KEY:'fake-app',VOLC_ASR_ACCESS_KEY:'fake-access',ASR_TIMEOUT_MS:'2000'};
+test('新版Key经过真实WebSocket传输和生产提供器，不发送旧鉴权头',async t=>{
+ let observed;
+ const server=new WebSocketServer({host:'127.0.0.1',port:0});await new Promise(resolve=>server.once('listening',resolve));
+ t.after(()=>new Promise(resolve=>server.close(resolve)));
+ server.on('connection',(socket,request)=>{observed=request.headers;socket.on('message',frame=>{if(frame[1]===0x22)socket.send(response(true));});});
+ const p=createVolcengineAsrProvider({env:{...env,VOLC_ASR_API_KEY:'fake-new-key'},transportFactory:options=>createAsrTransport({...options,testUrl:`ws://127.0.0.1:${server.address().port}`})});
+ assert.equal(await p.transcribe(Buffer.alloc(3200)),'预算1200元，不提前发布。');
+ assert.equal(observed['x-api-key'],'fake-new-key');assert.equal(observed['x-api-app-key'],undefined);assert.equal(observed['x-api-access-key'],undefined);
+});
 function response(final=false){const payload=Buffer.from(JSON.stringify({result:{text:'预算1200元，不提前发布。'}}));const frame=Buffer.alloc(8+payload.length);frame.set([0x11,final?0x92:0x90,0x10,0]);frame.writeUInt32BE(payload.length,4);payload.copy(frame,8);return frame;}
+test('服务正常结束但无文字时提示检查麦克风，不误报网络或凭据',async t=>{
+ for(const result of [undefined,{}, {text:''}, {text:'   '}]){
+  const testUrl=await local(t,socket=>socket.on('message',frame=>{if(frame[1]!==0x22)return;const payload=Buffer.from(JSON.stringify({result}));const output=Buffer.alloc(8+payload.length);output.set([0x11,0x92,0x10,0]);output.writeUInt32BE(payload.length,4);payload.copy(output,8);socket.send(output);}));
+  const p=createVolcengineAsrProvider({env,transportFactory:options=>createAsrTransport({...options,testUrl})});
+  await assert.rejects(p.transcribe(Buffer.alloc(3200)),error=>error.status===422 && /未识别到.*语音/.test(error.message) && /麦克风/.test(error.message) && !/网络|凭据/.test(error.message));
+ }
+});
 async function local(t,handler){const server=new WebSocketServer({host:'127.0.0.1',port:0});await new Promise(r=>server.once('listening',r));server.on('connection',handler);t.after(()=>new Promise(r=>{for(const c of server.clients)c.terminate();server.close(r);}));return `ws://127.0.0.1:${server.address().port}`;}
 async function api(t,asr){const server=createServer({asr,provider:{simulated:true,complete:async()=> 'mock'}});const safeUrl=await listenForFetch(server);t.after(()=>new Promise(r=>{server.closeAllConnections();server.close(r);}));const url=safeUrl;const headers={'Content-Type':'application/octet-stream','X-Audio-Sample-Rate':'16000','X-Audio-Channels':'1','X-Audio-Bit-Depth':'16'};return {url,headers};}
 test('显式火山配置可加载，缺凭据失败且状态不含秘密',()=>{
