@@ -8,6 +8,7 @@ import './styles.css';
 import './history.css';
 import './source-preview.css';
 import './settings.css';
+import './theme.css';
 
 const panel = new URLSearchParams(location.search).get('panel');
 if (desktopAvailable()) {

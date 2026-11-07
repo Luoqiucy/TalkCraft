@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TalkCraft 新界面方向（示意稿）</title>
+<style>
+/* Three directions share one layout; only design tokens change. */
+.app[data-theme="mono"]{--bg:#fafafa;--surface:#fff;--subtle:#f4f4f5;--line:#e4e4e7;--text:#09090b;--muted:#71717a;--accent:#18181b;--accent-text:#fff;--link:#4f46e5;--ok:#16a34a;--radius:10px;--radius-lg:14px;--shadow:0 1px 2px rgb(0 0 0/.05);--mic:#18181b}
+.app[data-theme="night"]{--bg:#0b0b0f;--surface:#131318;--subtle:#1b1b22;--line:#26262f;--text:#ededf2;--muted:#8a8a99;--accent:#8b93ff;--accent-text:#0b0b0f;--link:#a5abff;--ok:#4ade80;--radius:10px;--radius-lg:14px;--shadow:none;--mic:#8b93ff}
+.app[data-theme="soft"]{--bg:#f6f3ee;--surface:#fffdf9;--subtle:#f1ece4;--line:#e9e1d6;--text:#2b2620;--muted:#8a8073;--accent:#e2603d;--accent-text:#fff;--link:#c2492a;--ok:#3f8f5a;--radius:14px;--radius-lg:22px;--shadow:0 10px 30px rgb(90 60 30/.08);--mic:#e2603d}
+*{box-sizing:border-box}
+body{margin:0;background:#e8e8ec;font:14px/1.6 "PingFang SC","HarmonyOS Sans SC","MiSans","Microsoft YaHei UI","Segoe UI",system-ui,sans-serif;color:#222}
+.picker{max-width:1200px;margin:24px auto 12px;display:flex;gap:10px;flex-wrap:wrap;padding:0 16px}
+.picker button{flex:1 1 300px;text-align:left;border:1px solid #d4d4d8;background:#fff;border-radius:12px;padding:12px 14px;cursor:pointer;font:inherit}
+.picker button[aria-pressed="true"]{border-color:#18181b;box-shadow:0 0 0 2px #18181b inset}
+.picker b{display:block;font-size:15px}.picker span{color:#71717a;font-size:12.5px}
+.note{max-width:1200px;margin:0 auto 12px;padding:0 16px;color:#71717a;font-size:12.5px}
+.app{max-width:1200px;height:760px;margin:0 auto 40px;display:grid;grid-template-columns:220px 1fr;background:var(--bg);color:var(--text);border-radius:16px;overflow:hidden;position:relative;box-shadow:0 30px 80px rgb(0 0 0/.18);transition:background .25s,color .25s}
+/* Left rail: modes are the primary navigation; tools sit at the bottom. */
+.rail{display:flex;flex-direction:column;gap:2px;padding:18px 12px;border-right:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:650;font-size:15px;padding:4px 10px 18px}
+.logo{width:28px;height:28px;border-radius:9px;background:var(--accent);color:var(--accent-text);display:grid;place-items:center}
+.rail .label{font-size:11.5px;color:var(--muted);padding:12px 10px 6px;letter-spacing:.04em}
+.nav{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius);color:var(--muted);cursor:pointer;user-select:none}
+.nav:hover{background:var(--subtle);color:var(--text)}
+.nav.on{background:var(--subtle);color:var(--text);font-weight:600}
+.nav kbd{margin-left:auto}
+.nav svg,.ico{width:17px;height:17px;flex:none;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.spacer{flex:1}
+kbd{font:11px ui-monospace,Consolas,monospace;color:var(--muted);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:var(--surface)}
+.plan{margin:10px 4px 0;padding:12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);font-size:12.5px}
+.plan .row{display:flex;justify-content:space-between;color:var(--muted)}
+.plan .tag{color:var(--accent-text);background:var(--accent);border-radius:999px;padding:0 8px;font-size:11px;font-weight:600}
+.meter{height:5px;border-radius:9px;background:var(--subtle);margin:8px 0 4px;overflow:hidden}
+.meter i{display:block;height:100%;width:32%;background:var(--accent);border-radius:9px}
+/* Main column: one composer, one result, nothing else competing for attention. */
+.main{display:flex;flex-direction:column;min-width:0;overflow:auto}
+.top{display:flex;align-items:center;gap:12px;padding:14px 28px;border-bottom:1px solid var(--line)}
+.top h1{font-size:15px;margin:0;font-weight:600}
+.status{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12.5px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.top .right{margin-left:auto;display:flex;gap:8px}
+.ghost{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:var(--radius);padding:6px 10px;font:inherit;font-size:12.5px;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.column{width:100%;max-width:760px;margin:0 auto;padding:28px 28px 120px;display:flex;flex-direction:column;gap:18px}
+.composer{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:14px 14px 12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 10px;background:var(--bg)}
+.chip.on{color:var(--text);border-color:var(--text)}
+.app[data-theme="night"] .chip.on,.app[data-theme="soft"] .chip.on{color:var(--link);border-color:var(--link)}
+.composer textarea{width:100%;min-height:76px;border:0;outline:0;resize:none;background:transparent;color:var(--text);font:inherit;font-size:15px;padding:6px 4px}
+.composer textarea::placeholder{color:var(--muted)}
+.bar{display:flex;align-items:center;gap:10px}
+.mic{width:40px;height:40px;border-radius:50%;border:0;background:var(--mic);color:var(--accent-text);display:grid;place-items:center;cursor:pointer}
+.app[data-theme="night"] .mic{box-shadow:0 0 0 6px rgb(139 147 255/.14),0 0 24px rgb(139 147 255/.35)}
+.app[data-theme="soft"] .mic{box-shadow:0 8px 20px rgb(226 96 61/.35)}
+.hint{color:var(--muted);font-size:12px}
+.send{margin-left:auto;border:0;background:var(--accent);color:var(--accent-text);border-radius:var(--radius);padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
+/* Result: answer first, sources as one compact row, process as one line. */
+.result{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:20px 22px}
+.q{color:var(--muted);font-size:13px;margin:0 0 10px}
+.answer{font-size:15px;line-height:1.85;margin:0}
+.answer p{margin:0 0 10px}
+.cite{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 4px;margin:0 1px;border-radius:5px;font-size:11px;background:var(--subtle);color:var(--link);vertical-align:2px;font-weight:600}
+.sources{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+.src{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:var(--radius);padding:6px 10px;font-size:12.5px;background:var(--bg);max-width:230px}
+.src i{width:18px;height:18px;border-radius:5px;flex:none;display:grid;place-items:center;font-style:normal;font-size:10px;font-weight:700;color:#fff}
+.src span{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.src small{color:var(--muted)}
+.trace{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12.5px;border-top:1px dashed var(--line);margin-top:14px;padding-top:12px}
+.trace .ok{color:var(--ok)}
+.actions{margin-left:auto;display:flex;gap:4px}
+.icon-btn{width:30px;height:30px;border-radius:8px;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer}
+.icon-btn:hover{background:var(--subtle);color:var(--text)}
+.history{display:flex;flex-direction:column;gap:2px}
+.history h2{font-size:12px;color:var(--muted);font-weight:500;margin:6px 4px}
+.item{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:var(--radius);color:var(--text);font-size:13.5px}
+.item:hover{background:var(--subtle)}
+.item .m{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:0 6px}
+.item time{margin-left:auto;color:var(--muted);font-size:12px}
+/* Floating recording pill: the same element becomes the desktop HUD. */
+.pill{position:absolute;left:calc(50% + 110px);bottom:22px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;padding:8px 10px 8px 14px;border-radius:999px;background:#111114;color:#fff;box-shadow:0 12px 30px rgb(0 0 0/.25)}
+.app[data-theme="soft"] .pill{background:#2b2620}
+.rec{width:8px;height:8px;border-radius:50%;background:#ef4444;animation:blink 1.2s infinite}
+.wave{display:flex;gap:3px;align-items:center;height:20px}
+.wave b{width:3px;border-radius:3px;background:#fff;opacity:.85;animation:wave 1s ease-in-out infinite}
+.wave b:nth-child(2n){animation-delay:.15s}.wave b:nth-child(3n){animation-delay:.3s}
+.pill time{font:12px ui-monospace,Consolas,monospace;opacity:.8}
+.pill button{border:0;border-radius:999px;padding:5px 12px;font:inherit;font-size:12px;cursor:pointer}
+.pill .stop{background:#fff;color:#111}.pill .cancel{background:transparent;color:#bbb}
+@keyframes blink{50%{opacity:.25}}
+@keyframes wave{0%,100%{height:5px}50%{height:18px}}
+@media (prefers-reduced-motion:reduce){.rec,.wave b{animation:none}.wave b{height:10px}}
+</style>
+</head>
+<body>
+<div class="picker" role="group" aria-label="选择设计方向">
+  <button data-pick="mono" aria-pressed="true"><b>A · 纯净留白</b><span>黑白灰为主，一个靛蓝强调色；细线、少阴影。参考 shadcn/ui、Linear 浅色和苹果设计规范的克制感。</span></button>
+  <button data-pick="night" aria-pressed="false"><b>B · 夜间专注</b><span>近黑底配薰衣草蓝，麦克风带柔光；适合长时间开着。参考 Raycast、Linear 深色和 Wispr Flow 的浮层。</span></button>
+  <button data-pick="soft" aria-pressed="false"><b>C · 温暖柔和</b><span>米白纸感、珊瑚橙强调色、大圆角和柔和投影；更像消费级硬件品牌。参考 Dribbble/Behance 上的硬件配套 App。</span></button>
+</div>
+<p class="note">示意稿：内容为虚构示例，不是真实查询结果。三套方案布局相同，只换颜色、圆角和阴影，方便直接比较；底部的录音浮条在桌面上会变成悬浮条。</p>
+<div class="app" data-theme="mono">
+  <aside class="rail">
+    <div class="brand"><span class="logo"><svg class="ico" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></span>TalkCraft</div>
+    <div class="label">模式</div>
+    <div class="nav"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>听写<kbd>1</kbd></div>
+    <div class="nav"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg>润色成提示词<kbd>2</kbd></div>
+    <div class="nav"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>翻译<kbd>3</kbd></div>
+    <div class="nav on"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>联网问答<kbd>4</kbd></div>
+    <div class="label">我的</div>
+    <div class="nav"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>历史</div>
+    <div class="nav"><svg viewBox="0 0 24 24"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 15.6 7.1 18.2 8 12.7 4 8.8l5.5-.8z"/></svg>个人记忆</div>
+    <div class="spacer"></div>
+    <div class="nav"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7 7 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2z"/></svg>设置</div>
+    <div class="plan"><div class="row"><span>本月用量</span><span class="tag">Pro</span></div><div class="meter"><i></i></div><div class="row"><span>32%</span><span>11月30日重置</span></div></div>
+  </aside>
+  <section class="main">
+    <header class="top">
+      <h1>联网问答</h1>
+      <span class="status"><span class="dot"></span>DeepSeek · 语音识别已连接</span>
+      <div class="right">
+        <button class="ghost"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>搜索历史<kbd>Ctrl K</kbd></button>
+        <button class="ghost">新对话</button>
+      </div>
+    </header>
+    <div class="column">
+      <div class="composer">
+        <div class="chips"><span class="chip on">● 联网搜索</span><span class="chip">简洁回答</span><span class="chip">中文</span></div>
+        <textarea placeholder="按住 右Alt 说话，或在这里输入问题…">苏州博物馆周末几点开门？需要预约吗？</textarea>
+        <div class="bar">
+          <button class="mic" title="开始录音"><svg class="ico" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+          <span class="hint">按住 <kbd>右Alt</kbd> 说话 · <kbd>Enter</kbd> 发送</span>
+          <button class="send">提问</button>
+        </div>
+      </div>
+      <article class="result">
+        <p class="q">苏州博物馆周末几点开门？需要预约吗？</p>
+        <div class="answer">
+          <p>周末正常开放，<b>9:00—17:00</b>，16:00 停止入馆；每周一闭馆，法定节假日除外<span class="cite">1</span>。</p>
+          <p>需要提前实名预约，可通过官网或官方公众号预约，当天 15:40 停止预约<span class="cite">2</span>。节假日可能延长开放，出发前建议看一眼官网公告<span class="cite">3</span>。</p>
+        </div>
+        <div class="sources">
+          <span class="src"><i style="background:#8b5e34">苏</i><span>参观须知 · 苏州博物馆</span><small>官网</small></span>
+          <span class="src"><i style="background:#16a34a">微</i><span>预约指南</span><small>公众号</small></span>
+          <span class="src"><i style="background:#2563eb">新</i><span>假期延长开放公告</span><small>10月</small></span>
+        </div>
+        <div class="trace">
+          <span class="ok">✓</span>搜索 2 次 · 读取 3 个网页 · 6.7 秒
+          <div class="actions">
+            <button class="icon-btn" title="复制"><svg class="ico" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg></button>
+            <button class="icon-btn" title="朗读"><svg class="ico" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg></button>
+            <button class="icon-btn" title="写入光标处"><svg class="ico" viewBox="0 0 24 24"><path d="M5 12h12M13 6l6 6-6 6"/></svg></button>
+          </div>
+        </div>
+      </article>
+      <div class="history">
+        <h2>今天</h2>
+        <div class="item"><span class="m">翻译</span>把会议纪要翻成英文邮件<time>10:42</time></div>
+        <div class="item"><span class="m">听写</span>下午三点和设计团队对齐新版首页<time>09:18</time></div>
+      </div>
+    </div>
+  </section>
+  <div class="pill" aria-label="录音中">
+    <span class="rec"></span>
+    <span class="wave"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></span>
+    <time>00:07</time>
+    <button class="cancel">取消</button><button class="stop">完成</button>
+  </div>
+</div>
+<script>
+const app=document.querySelector('.app');
+for(const button of document.querySelectorAll('[data-pick]'))button.addEventListener('click',()=>{app.dataset.theme=button.dataset.pick;for(const other of document.querySelectorAll('[data-pick]'))other.setAttribute('aria-pressed',String(other===button));});
+</script>
+</body>
+</html>
