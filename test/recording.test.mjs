@@ -113,3 +113,16 @@ test('空录音与过大音频明确失败', async () => {
 test('重复dispose不会重复释放，关闭后不能再启动', async () => {
   const f=fixture();await f.session.start();f.session.dispose();f.session.dispose();assert.equal(f.streams[0].stops,1);assert.equal(await f.session.start(),false);assert.equal(f.timers.size,0);
 });
+
+test('外放抑制保留指定麦克风并请求回声消除与降噪', async () => {
+  const requests = [];
+  const f = fixture({getUserMedia: async options => {
+    requests.push(options);
+    return {getTracks: () => [{stop() {}}]};
+  }});
+  assert.equal(await f.session.start({deviceId: 'usb-mic', speakerSuppression: true}), true);
+  assert.deepEqual(requests, [{audio: {
+    deviceId: {exact: 'usb-mic'}, echoCancellation: true, noiseSuppression: true
+  }}]);
+  f.session.dispose();
+});
