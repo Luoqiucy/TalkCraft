@@ -164,7 +164,7 @@ fn main() {
             tray::initialize(app.handle())?;
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![file_export::file_export, external_links::open_external_url, hud_window, panel_window, hud_interactive, hud_hit_regions, clipboard::clipboard_write, desktop_prepare_exit, desktop_restore_after_exit_failure, desktop_exit, desktop_minimize, shortcuts::shortcuts_read, shortcuts::shortcuts_editor_focus, shortcuts::shortcuts_save, right_keys::shortcuts_diagnostics, right_keys::shortcuts_diagnostic_frontend, output_target::output_target, output_target::output_preflight, output_target::output_send, output_target::output_send_current, output_text::output_preview])
+        .invoke_handler(tauri::generate_handler![file_export::file_export, external_links::open_external_url, external_links::open_windows_voice_settings, hud_window, panel_window, hud_interactive, hud_hit_regions, clipboard::clipboard_write, desktop_prepare_exit, desktop_restore_after_exit_failure, desktop_exit, desktop_minimize, shortcuts::shortcuts_read, shortcuts::shortcuts_editor_focus, shortcuts::shortcuts_save, right_keys::shortcuts_diagnostics, right_keys::shortcuts_diagnostic_frontend, output_target::output_target, output_target::output_preflight, output_target::output_send, output_target::output_send_current, output_text::output_preview])
         .build(tauri::generate_context!());
     match application{
         Ok(application)=>application.run(|_app,_event|{

@@ -24,3 +24,17 @@ test('spoken answer uses a dedicated summary instruction and bounded model outpu
   assert.equal(result.spokenAnswer, true);
   assert.match(result.text, /70%.*仍可能变化/);
 });
+
+test('a speech engine that never starts reports a playback error and cancels the pending utterance', async t => {
+  t.mock.timers.enable({apis:['setTimeout']});
+  let cancelled=0;
+  const controller=createSpeechController({
+    synthesis:{getVoices:()=>[voice()],cancel(){cancelled++;},speak(){}},
+    utteranceFactory:text=>({text}),broadcast:{postMessage(){}}
+  });
+  const pending=controller.play('测试朗读。');
+  const rejection=assert.rejects(pending,/未开始播放/);
+  t.mock.timers.tick(5000);
+  await rejection;
+  assert.equal(cancelled,2);
+});

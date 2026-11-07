@@ -59,6 +59,8 @@ export function WorkbenchApp() {
   const [seconds, setSeconds] = useState(0);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [spokenPreview, setSpokenPreview] = useState('');
+  const [speechNotice, setSpeechNotice] = useState('');
   const [view, setView] = useState<'workbench' | 'history' | 'memories' | 'settings'>('workbench');
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [preferences,setPreferences]=useState<UserPreferences>(defaultUserPreferences);
@@ -146,6 +148,8 @@ export function WorkbenchApp() {
     speechController.stop();
     const config = latest.current;
     spokenSummaryRequest.current?.abort();
+    setSpokenPreview('');
+    setSpeechNotice('');
     const value = activeMode === 'dictation' ? input : input.trim();
     if (!value.trim() || value.length > (activeMode === 'chat' ? 4000 : 12000)) { setError('请输入有效文字，问答最多4000字，其他模式最多12000字'); return; }
     let questionHistory=config.conversation;
@@ -201,12 +205,12 @@ export function WorkbenchApp() {
         return;
       }
       setResult(answer); setPartialAnswer(''); setNotice(''); setState('completed');
-      if(shouldAutoSpeakCompletedAnswer({mode:activeMode,webSearchEnabled:config.webSearch,searchPerformed:answer.search?.performed===true,autoSpeakEnabled:preferences.autoSpeakAnswers})){const summaryRequest = new AbortController();
+      if(shouldAutoSpeakCompletedAnswer({mode:activeMode,webSearchEnabled:config.webSearch,searchPerformed:answer.search?.performed===true,autoSpeakEnabled:latest.current.preferences.autoSpeakAnswers})){const summaryRequest = new AbortController();
         spokenSummaryRequest.current = summaryRequest;
         const readSummary = async () => {
           try {
             if (!speechController.available()) throw new Error('没有可用的本机音色');
-            setNotice('正在提炼语音回复…');
+            setSpeechNotice('正在提炼语音回复…');
             const deadline = AbortSignal.any([summaryRequest.signal, AbortSignal.timeout(12000)]);
             let spoken = '';
             try {
@@ -217,11 +221,13 @@ export function WorkbenchApp() {
             }
             summaryRequest.signal.throwIfAborted();
             if (!spoken || spoken.length > 500) spoken = conciseSpeechCandidate(answer.text).text;
-            if (!spoken) { setNotice('语音摘要未生成，可手动播放完整回答'); return; }
-            setNotice('');
+            if (!spoken) { setSpeechNotice('语音摘要未生成，可手动播放完整回答'); return; }
+            setSpokenPreview(spoken);
+            setSpeechNotice('正在提交语音摘要给本机播放器…');
             await speechController.play(spoken);
+            if (!summaryRequest.signal.aborted) setSpeechNotice('');
           } catch (cause) {
-            if (!summaryRequest.signal.aborted) setNotice(cause instanceof Error ? cause.message : '本机语音播放失败');
+            if (!summaryRequest.signal.aborted) setSpeechNotice(cause instanceof Error ? cause.message : '本机语音播放失败');
           } finally {
             if (spokenSummaryRequest.current === summaryRequest) spokenSummaryRequest.current = null;
           }
@@ -425,7 +431,20 @@ export function WorkbenchApp() {
         {mode === 'translate' && <label>{uiEnglish?'Target language':'目标语言'} <select value={targetLanguage} onChange={event => setTargetLanguage(event.target.value)}>{Object.entries(languages).map(([code, name]) => <option key={code} value={code}>{uiEnglish?code:name}</option>)}</select></label>}
         {mode === 'chat' && <div className="chat-options"><label className="consent"><input type="checkbox" checked={webSearch} disabled={commercialMode ? !commercialStatus?.webSearchAvailable : !status?.webSearchAvailable && !status?.weatherAvailable} onChange={event => { searchTouched.current = true; setWebSearch(event.target.checked); }} /> 联网问答</label><label className="consent"><input type="checkbox" checked={rememberConversation} disabled={busy || memoryLoading} onChange={event => changeMemory(event.target.checked)} /> 跨重启继续问答</label><button type="button" disabled={!conversation.length || busy} onClick={() => { speechController.stop();setConversation([]);conversationId.current=crypto.randomUUID(); changeMemory(false); setNotice('已清空当前会话；已保存的历史可在历史记录中删除'); }}>清空会话</button><span className="muted">{memoryLoading ? '正在读取本机历史…' : `${conversation.length / 2} 轮上下文${rememberConversation && memoryAvailable ? ' · 来自本机已保存历史' : ''}`}</span><div className="weather-location-control"><span className="muted">天气位置（可选）</span>{weatherLocationAllowed ? <button type="button" onClick={revokeWeatherLocation}>关闭当前位置</button> : <button type="button" onClick={() => void allowWeatherLocation()}>允许使用当前位置</button>}<span className="muted" role="status">{weatherLocationStatus}</span><small>仅在天气问题没有明确城市时使用；系统只保存授权开关，近似坐标仅保存在内存，不写入历史或个人记忆；坐标会经 TalkCraft 天气服务发送给天气提供方，不发给文字模型。定位不可用时可直接输入城市。联网问答开关仍单独控制天气查询。</small></div></div>}
         <textarea value={draft} onChange={event => setDraft(event.target.value)} placeholder={uiEnglish?'Type here, or record and use the transcript':'输入内容，或录音转写后选择使用转录'} /><div className="actions"><button className="primary" disabled={capturing || busy && mode !== 'chat' || !draft.trim()} onClick={run}>{mode === 'dictation' ? uiEnglish?'Use text':'使用文字' : mode === 'chat' ? busy ? uiEnglish?'Stop and ask a new question':'停止当前查询并按新问题继续' : uiEnglish?'Ask':'开始问答' : uiEnglish?'Process text':'AI 智能处理'}</button><button onClick={refreshStatus} disabled={busy}>{uiEnglish?'Check services':'检查服务'}</button></div><p className="live-status" role="status">{error || notice || (capture === 'recording' ? uiEnglish?'Recording':'录音中' : states[state])}</p>{saveError && <p className="error-text">{saveError}</p>}</article>
-        <article className="react-card output-card"><div className="eyebrow">{uiEnglish?'Result':'处理结果'}</div><h2>{result ? visibleNames[mode] : partialAnswer ? uiEnglish?'Generating response':'正在生成结果' : uiEnglish?'Waiting for response':'等待结果'}</h2><AnswerText result={partialAnswer ? { text: partialAnswer } : result} enableSpeech={!!result?.text&&state==='completed'} />{result?.text && <button onClick={() => void copy(result.text)}>{uiEnglish?'Copy answer':'复制结果'}</button>}{memorySuggestions.length>0&&<aside className="memory-suggestions" aria-label="本次对话中的个人信息"><strong>本次对话提到的信息</strong><p>这些内容目前只在本次会话中；确认后才会保存到个人记忆。</p>{memorySuggestions.map((fact,index)=><div className="memory-suggestion" key={`${fact.predicate}:${fact.object}:${index}`}><span>{fact.predicate==='likes-eating'?`喜欢吃：${fact.object}`:fact.predicate==='eats'?`${fact.frequency==='occasional'?'偶尔吃':'提到吃'}：${fact.object}`:`提到：${fact.object}`}</span><button type="button" onClick={async()=>{try{const content=fact.provenance?.text||`${fact.predicate}：${fact.object}${fact.frequency==='occasional'?'（偶尔）':''}`;await createMemory({type:fact.predicate==='likes-eating'?'preference':'fact',content,reason:`用户确认保存：${content}`,sourceRecordId:task.current?.id||null,independent:false,syncSelected:false});setMemorySuggestions(old=>old.filter((_,i)=>i!==index));setNotice('已保存为个人记忆；默认仅保存在当前设备');}catch(cause){setError(cause instanceof Error?cause.message:'个人记忆保存失败');}}}>保存为个人记忆</button></div>)}</aside>}<AnswerSources answer={result?.text || ''} search={result?.search} /><ExecutionTracePanel state={state} events={events} sources={result?.search?.sources || []} search={result?.search} showSources={false} /><OutputPanel text={result?.text || ''} /></article></section>
+        <article className="react-card output-card"><div className="eyebrow">{uiEnglish?'Result':'处理结果'}</div><h2>{result ? visibleNames[mode] : partialAnswer ? uiEnglish?'Generating response':'正在生成结果' : uiEnglish?'Waiting for response':'等待结果'}</h2><AnswerText result={partialAnswer ? { text: partialAnswer } : result} enableSpeech={!!result?.text&&state==='completed'} />
+          {speechNotice && <p className="muted" role="status">{speechNotice}</p>}
+          {spokenPreview && <details><summary>语音摘要</summary><p>{spokenPreview}</p>
+            <button type="button" onClick={() => {
+              spokenSummaryRequest.current?.abort();
+              setSpeechNotice('');
+              void speechController.play(spokenPreview).catch(cause => setSpeechNotice(cause instanceof Error ? cause.message : '本机语音播放失败'));
+            }}>播放摘要</button>
+            <button type="button" onClick={() => {
+              spokenSummaryRequest.current?.abort();
+              speechController.stop();
+              setSpeechNotice('');
+            }}>停止播报</button>
+          </details>}{result?.text && <button onClick={() => void copy(result.text)}>{uiEnglish?'Copy answer':'复制结果'}</button>}{memorySuggestions.length>0&&<aside className="memory-suggestions" aria-label="本次对话中的个人信息"><strong>本次对话提到的信息</strong><p>这些内容目前只在本次会话中；确认后才会保存到个人记忆。</p>{memorySuggestions.map((fact,index)=><div className="memory-suggestion" key={`${fact.predicate}:${fact.object}:${index}`}><span>{fact.predicate==='likes-eating'?`喜欢吃：${fact.object}`:fact.predicate==='eats'?`${fact.frequency==='occasional'?'偶尔吃':'提到吃'}：${fact.object}`:`提到：${fact.object}`}</span><button type="button" onClick={async()=>{try{const content=fact.provenance?.text||`${fact.predicate}：${fact.object}${fact.frequency==='occasional'?'（偶尔）':''}`;await createMemory({type:fact.predicate==='likes-eating'?'preference':'fact',content,reason:`用户确认保存：${content}`,sourceRecordId:task.current?.id||null,independent:false,syncSelected:false});setMemorySuggestions(old=>old.filter((_,i)=>i!==index));setNotice('已保存为个人记忆；默认仅保存在当前设备');}catch(cause){setError(cause instanceof Error?cause.message:'个人记忆保存失败');}}}>保存为个人记忆</button></div>)}</aside>}<AnswerSources answer={result?.text || ''} search={result?.search} /><ExecutionTracePanel state={state} events={events} sources={result?.search?.sources || []} search={result?.search} showSources={false} /><OutputPanel text={result?.text || ''} /></article></section>
     </div><UsageCard refreshKey={usageRefresh} commercialMode={commercialMode} onCommercialMode={setCommercialMode} onCommercialStatus={handleCommercialStatus} busy={busy || capturing} /></div>}
   </main>;
 }
