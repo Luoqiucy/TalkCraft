@@ -8,3 +8,19 @@ test('automatic speech accepts complete short answers and skips long answers rat
 test('automatic speech only starts for enabled web-search answers',()=>{assert.equal(shouldAutoSpeakCompletedAnswer({mode:'chat',webSearchEnabled:true,autoSpeakEnabled:true,searchPerformed:true}),true);for(const input of [{mode:'dictation',webSearchEnabled:true,autoSpeakEnabled:true,searchPerformed:true},{mode:'chat',webSearchEnabled:false,autoSpeakEnabled:true,searchPerformed:true},{mode:'chat',webSearchEnabled:true,autoSpeakEnabled:false,searchPerformed:true},{mode:'chat',webSearchEnabled:true,autoSpeakEnabled:true,searchPerformed:false}])assert.equal(shouldAutoSpeakCompletedAnswer(input),false);});
 test('only local voices are selectable and speech can stop/replay through the provider boundary',async()=>{const voices=[voice(),{...voice(false),voiceURI:'online'}];assert.deepEqual(listLocalSpeechVoices({getVoices:()=>voices}).map(item=>item.voiceURI),['local-zh']);let spoken=[],cancelled=0;const synth={getVoices:()=>voices,cancel(){cancelled++;},speak(item){spoken.push(item);}};const events=[];const broadcast={postMessage:value=>events.push(value)};const controller=createSpeechController({synthesis:synth,utteranceFactory:(text)=>({text}),broadcast});const promise=controller.play('正在朗读答案。',{voiceURI:'local-zh',rate:1.2,volume:.7});assert.equal(spoken[0].voice.voiceURI,'local-zh');assert.equal(spoken[0].rate,1.2);assert.equal(spoken[0].volume,.7);spoken[0].onend();await promise;controller.stop();assert.ok(cancelled>=2);assert.deepEqual(events.map(event=>event.type),['start','stop']);});
 test('speech does not claim success when no local voice exists',async()=>{const controller=createSpeechController({synthesis:{getVoices:()=>[],cancel(){},speak(){throw Error('must not run');}},utteranceFactory:text=>({text}),broadcast:{postMessage(){}}});await assert.rejects(controller.play('答案。'),/没有可用的本机语音/);});
+
+test('spoken answer uses a dedicated summary instruction and bounded model output', async () => {
+  const {processText} = await import('../src/pipeline.mjs');
+  const question = '需要带伞吗？';
+  const answer = '下午降雨概率为 70%，但预报仍可能变化。';
+  const result = await processText({mode:'prompt',purpose:'spoken-answer',question,text:answer}, {
+    async complete(messages, options) {
+      assert.match(messages[0].content, /不确定性/);
+      assert.deepEqual(JSON.parse(messages[1].content), {question,answer});
+      assert.equal(options.maxTokens, 320);
+      return {text:'建议带伞。下午降雨概率为 70%，预报仍可能变化。'};
+    }
+  });
+  assert.equal(result.spokenAnswer, true);
+  assert.match(result.text, /70%.*仍可能变化/);
+});
