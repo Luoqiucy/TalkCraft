@@ -24,13 +24,18 @@ export function createRecordingSession({getUserMedia, Recorder, onState = () => 
   };
   const session = {
     get state() {return state;},
-    async start({deviceId}={}) {
+    async start({deviceId,speakerSuppression=false}={}) {
       if (disposed || active) return false;
       const capture = {chunks: [], size: 0}; active = capture; update('acquiring');
       try {
         if (!getUserMedia || !Recorder) throw new Error('此环境不支持录音，请使用系统浏览器打开本地地址');
         if(deviceId!==undefined&&(typeof deviceId!=='string'||!deviceId.trim()||deviceId.length>512||deviceId.includes('\0')))throw new Error('麦克风设备编号无效');
-        capture.stream = await getUserMedia({audio: deviceId===undefined?true:{deviceId:{exact:deviceId}}});
+        const audio = deviceId === undefined ? {} : {deviceId:{exact:deviceId}};
+        if (speakerSuppression === true) {
+          audio.echoCancellation = true;
+          audio.noiseSuppression = true;
+        }
+        capture.stream = await getUserMedia({audio: Object.keys(audio).length ? audio : true});
         if (disposed || active !== capture) {release(capture); return false;}
         capture.trackEnded=()=>fail(capture,new Error('麦克风已断开或停止提供音频，请重新选择麦克风后录音'));
         capture.watchedTracks=capture.stream.getTracks().filter(track=>track.kind==='audio'&&typeof track.addEventListener==='function');

@@ -31,7 +31,7 @@ import type { CommercialStatus } from '../services/commercialClient';
 const names: Record<WorkMode, string> = { dictation: '听写', prompt: '提示词预设', translate: '翻译', chat: '问答' };
 const states: Record<AgentTaskState, string> = { idle: '就绪', understanding: '正在准备', searching: '正在搜索', reading: '正在读取资料', weather: '正在查询天气', answering: '正在整理回答', transcribing: '正在转写', completed: '已完成', 'needs-confirmation': '等待确认', failed: '失败', cancelled: '已取消', timeout: '超时' };
 const languages = { en: '英语', zh: '简体中文', 'zh-CN':'简体中文（中国大陆）','zh-TW': '繁体中文（台湾）', ja: '日语', ko: '韩语', fr: '法语', de: '德语', es: '西班牙语', it: '意大利语', pt: '葡萄牙语','pt-BR':'巴西葡萄牙语','pt-PT':'葡萄牙葡萄牙语','en-US':'美式英语','en-GB':'英式英语', ru: '俄语', ar: '阿拉伯语', hi: '印地语', th: '泰语', vi: '越南语', id: '印度尼西亚语', ms: '马来语', tr: '土耳其语', nl: '荷兰语', pl: '波兰语', uk: '乌克兰语' };
-type Session = { state: string; start(input: { deviceId?: string }): Promise<boolean>; stop(): boolean; cancel(): boolean; dispose(): void };
+type Session = { state: string; start(input: { deviceId?: string; speakerSuppression?: boolean }): Promise<boolean>; stop(): boolean; cancel(): boolean; dispose(): void };
 type WeatherLocation = { latitude: number; longitude: number; source: 'device-geolocation'; capturedAt: string };
 function recordShortcutDiagnostic(event: string, capture: string, busy: boolean, sessionState = capture) {
   if (!desktopAvailable()) return;
@@ -256,7 +256,17 @@ export function WorkbenchApp() {
 
   useEffect(() => {
     void refreshStatus(); void refreshDevices();
-    const current = createRecordingSession({ getUserMedia: navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices), Recorder: window.MediaRecorder, onState: (next: string) => { if (next === 'acquiring') stoppedAt.current = null; if (next === 'stopping') stoppedAt.current = performance.now(); setCapture(next); recordShortcutDiagnostic('capture_state', next, liveCaptureState.current.busy, next); }, onStream: attachMeter, onComplete: (blob: Blob) => void handleCapture(blob), onError: (cause: Error) => { const unavailable=['NotFoundError','OverconstrainedError'].includes((cause as Error & {name?:string}).name||'');const message=unavailable?(latest.current.preferences.interfaceLanguage==='en-US'?'The saved microphone is unavailable. Choose another device in Settings; recording will not switch automatically.':'已保存的麦克风不可用；请在设置中重新选择，录音不会自动切换。'):cause.message;setError(message); setState('failed'); if (task.current) void patch({ id: task.current.id, mode: task.current.mode, status: 'asr-failed', error: message }); } }) as Session;
+    const current = createRecordingSession({ getUserMedia: navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices), Recorder: window.MediaRecorder, onState: (next: string) => { if (next === 'acquiring') stoppedAt.current = null; if (next === 'stopping') stoppedAt.current = performance.now(); setCapture(next); recordShortcutDiagnostic('capture_state', next, liveCaptureState.current.busy, next); }, onStream: (stream: MediaStream | null) => {
+      attachMeter(stream);
+      if (!stream || !latest.current.preferences.speakerSuppression) return;
+      const settings = stream.getAudioTracks()[0]?.getSettings();
+      const echo = settings?.echoCancellation === true;
+      const noise = settings?.noiseSuppression === true;
+      setNotice(echo && noise ? '外放抑制：已启用回声消除和降噪'
+        : echo ? '外放抑制：回声消除已启用，降噪未确认'
+        : noise ? '外放抑制：降噪已启用，回声消除未确认'
+        : '当前录音设备未确认启用外放抑制');
+    }, onComplete: (blob: Blob) => void handleCapture(blob), onError: (cause: Error) => { const unavailable=['NotFoundError','OverconstrainedError'].includes((cause as Error & {name?:string}).name||'');const message=unavailable?(latest.current.preferences.interfaceLanguage==='en-US'?'The saved microphone is unavailable. Choose another device in Settings; recording will not switch automatically.':'已保存的麦克风不可用；请在设置中重新选择，录音不会自动切换。'):cause.message;setError(message); setState('failed'); if (task.current) void patch({ id: task.current.id, mode: task.current.mode, status: 'asr-failed', error: message }); } }) as Session;
     session.current = current;
     return () => { generation.current++; controller.current?.abort(); current.dispose(); attachMeter(null); if (timer.current) window.clearInterval(timer.current); };
   }, []);
@@ -305,7 +315,7 @@ export function WorkbenchApp() {
     const current = { id: crypto.randomUUID(), mode: requestedMode, started: Date.now() }; task.current = current;
     void patch({ id: current.id, mode: requestedMode, status: 'acquiring' });
     if (origin === 'external') recordShortcutDiagnostic('start_requested', capture, busy, session.current?.state || capture);
-    const started = await session.current?.start({ ...(deviceId ? { deviceId } : {}) }) ?? false;
+    const started = await session.current?.start({ ...(deviceId ? { deviceId } : {}), speakerSuppression: preferences.speakerSuppression }) ?? false;
     if (origin === 'external') recordShortcutDiagnostic(started ? 'start_result_true' : 'start_result_false', capture, busy, session.current?.state || capture);
     void refreshDevices();
     return started;
