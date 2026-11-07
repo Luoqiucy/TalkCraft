@@ -9,9 +9,9 @@ $running = Get-Process | Where-Object {
     [IO.Path]::GetFileName($_.Path) -match $applicationPattern
 }
 if ($running) { throw '请先保存录音并退出正在运行的 TalkCraft，再更新桌面程序。' }
-& npm run react:check
+& npm --prefix $projectRoot run react:check
 if ($LASTEXITCODE -ne 0) { throw 'React 类型检查失败，上一版应用保持不变。' }
-& npm run react:build
+& npm --prefix $projectRoot run react:build
 if ($LASTEXITCODE -ne 0) { throw 'React 前端构建失败，上一版应用保持不变。' }
 $stagingRoot = Join-Path $projectRoot ('.local\windows-build-' + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $stagingRoot -Force | Out-Null
