@@ -10,7 +10,7 @@ export function createAsrTransport({headers={},testUrl,handshakeTimeoutMs=10000}
   // while the connection is waiting to start.
   if(!headers || typeof headers!=='object' || Array.isArray(headers))throw new Error('ASR握手参数无效');
   const handshakeHeaders=Object.freeze({...headers});
-  const allowed=['X-Api-Resource-Id','X-Api-Access-Key','X-Api-App-Key','X-Api-Request-Id'];
+  const allowed=['X-Api-Resource-Id','X-Api-Key','X-Api-Access-Key','X-Api-App-Key','X-Api-Request-Id'];
   for(const [name,value]of Object.entries(handshakeHeaders)){if(!allowed.includes(name) || typeof value!=='string' || !value.trim() || value.length>2000 || /[\r\n]/.test(value))throw new Error('ASR握手参数无效');}
   if(testUrl===undefined && handshakeHeaders['X-Api-Resource-Id']?.startsWith('volc.seedasr.')) url='wss://openspeech.bytedance.com/api/v3/sauc/bigmodel_async';
   const bus=new EventEmitter();let socket,connecting,closing,disposed=false,rejectConnect;

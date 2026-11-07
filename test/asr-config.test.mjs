@@ -3,6 +3,16 @@ import assert from 'node:assert/strict';
 import {readVolcengineAsrConfig} from '../src/providers/asr-config.mjs';
 import {loadAsr} from '../src/asr.mjs';
 const env=()=>({VOLC_ASR_APP_KEY:'fake-app-key',VOLC_ASR_ACCESS_KEY:'fake-access-key'});
+
+test('新版API Key独立鉴权，优先于旧凭据且不序列化',()=>{
+ const config=readVolcengineAsrConfig({...env(),VOLC_ASR_API_KEY:'fake-new-key',VOLC_ASR_RESOURCE_ID:'volc.seedasr.sauc.duration'});
+ const headers=config.createHeaders();
+ assert.equal(headers['X-Api-Key'],'fake-new-key');
+ assert.equal(headers['X-Api-App-Key'],undefined);assert.equal(headers['X-Api-Access-Key'],undefined);
+ assert.equal(readVolcengineAsrConfig({VOLC_ASR_API_KEY:'only-new-key'}).createHeaders()['X-Api-Resource-Id'],'volc.seedasr.sauc.duration');
+ assert.ok(!JSON.stringify(config).includes('fake-new-key'));
+ for(const value of ['',null,5,'bad\r\nkey'])assert.throws(()=>readVolcengineAsrConfig({...env(),VOLC_ASR_API_KEY:value}),/VOLC_ASR_API_KEY/);
+});
 test('鉴权头映射官方字段，每次会话使用独立UUID',()=>{
  const config=readVolcengineAsrConfig(env()),a=config.createHeaders(),b=config.createHeaders();
  assert.equal(a['X-Api-App-Key'],'fake-app-key');assert.equal(a['X-Api-Access-Key'],'fake-access-key');
