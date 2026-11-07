@@ -24,6 +24,26 @@ pub fn open_external_url(url: String) -> Result<(), String> {
     Ok(())
 }
 
+#[tauri::command]
+pub fn open_windows_voice_settings() -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        use windows_sys::Win32::UI::{Shell::ShellExecuteW, WindowsAndMessaging::SW_SHOWNORMAL};
+        let verb: Vec<u16> = "open".encode_utf16().chain(Some(0)).collect();
+        let target: Vec<u16> = "ms-settings:speech".encode_utf16().chain(Some(0)).collect();
+        let result = unsafe {
+            ShellExecuteW(std::ptr::null_mut(), verb.as_ptr(), target.as_ptr(),
+                std::ptr::null(), std::ptr::null(), SW_SHOWNORMAL)
+        };
+        if result as isize <= 32 {
+            return Err("无法打开 Windows 语音设置".into());
+        }
+        Ok(())
+    }
+    #[cfg(not(windows))]
+    Err("此安装入口仅适用于 Windows".into())
+}
+
 #[cfg(test)] mod tests {
     use super::valid_external_url;
     #[test] fn permits_public_web_links_only() {
