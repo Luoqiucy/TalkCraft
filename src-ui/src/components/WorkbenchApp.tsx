@@ -23,7 +23,7 @@ import { UsageCard } from './UsageCard';
 import { MemoryPanel } from './MemoryPanel';
 import { createMemory } from '../services/memoryClient';
 import { defaultUserPreferences, readUserPreferences, saveUserPreferences, type UserPreferences } from '../services/userPreferences';
-import { conciseSpeechCandidate, setSpeechPreferences, shouldAutoSpeakCompletedAnswer, speechController } from '../services/speech';
+import { cleanSpeechText, conciseSpeechCandidate, setSpeechPreferences, shouldAutoSpeakCompletedAnswer, speechController } from '../services/speech';
 // @ts-expect-error Shared shortcut routing has no declaration file.
 import { routeRecordingShortcut } from '../services/shortcutRouter.mjs';
 import type { CommercialStatus } from '../services/commercialClient';
@@ -84,6 +84,8 @@ export function WorkbenchApp() {
   const knownAccountId = useRef<string | null | undefined>(undefined);
   const captureSounds=useRef<ReturnType<typeof createCaptureSounds>|null>(null);
   const controller = useRef<AbortController | null>(null);
+  const spokenSummaryRequest = useRef<AbortController | null>(null);
+  useEffect(() => () => spokenSummaryRequest.current?.abort(), [commercialStatus?.account?.id, commercialMode, preferences.autoSpeakAnswers]);
   const conversationId = useRef(crypto.randomUUID());
   const session = useRef<Session | null>(null);
   const task = useRef<{ id: string; mode: WorkMode; started: number } | null>(null);
@@ -143,6 +145,7 @@ export function WorkbenchApp() {
   const processCurrent = async (input: string, activeMode: WorkMode, id: string = crypto.randomUUID(), automatic = false) => {
     speechController.stop();
     const config = latest.current;
+    spokenSummaryRequest.current?.abort();
     const value = activeMode === 'dictation' ? input : input.trim();
     if (!value.trim() || value.length > (activeMode === 'chat' ? 4000 : 12000)) { setError('请输入有效文字，问答最多4000字，其他模式最多12000字'); return; }
     let questionHistory=config.conversation;
@@ -198,7 +201,32 @@ export function WorkbenchApp() {
         return;
       }
       setResult(answer); setPartialAnswer(''); setNotice(''); setState('completed');
-      if(shouldAutoSpeakCompletedAnswer({mode:activeMode,webSearchEnabled:config.webSearch,searchPerformed:answer.search?.performed===true,autoSpeakEnabled:preferences.autoSpeakAnswers})){const candidate=conciseSpeechCandidate(answer.text);if(candidate.eligible)void speechController.play(candidate.text).catch(cause=>setNotice(cause instanceof Error?cause.message:'本机语音播放失败'));else setNotice('回答较长，为避免遗漏条件未自动朗读；可点击“播放回答”完整收听');}
+      if(shouldAutoSpeakCompletedAnswer({mode:activeMode,webSearchEnabled:config.webSearch,searchPerformed:answer.search?.performed===true,autoSpeakEnabled:preferences.autoSpeakAnswers})){const summaryRequest = new AbortController();
+        spokenSummaryRequest.current = summaryRequest;
+        const readSummary = async () => {
+          try {
+            if (!speechController.available()) throw new Error('没有可用的本机音色');
+            setNotice('正在提炼语音回复…');
+            const deadline = AbortSignal.any([summaryRequest.signal, AbortSignal.timeout(12000)]);
+            let spoken = '';
+            try {
+              const summary = await processText({mode:'prompt',purpose:'spoken-answer',question:value,text:cleanSpeechText(answer.text),cloudConsent:config.agreement}, deadline, config.commercialMode);
+              if (summary.spokenAnswer === true && !summary.simulated) spoken = cleanSpeechText(summary.text);
+            } catch {
+              summaryRequest.signal.throwIfAborted();
+            }
+            summaryRequest.signal.throwIfAborted();
+            if (!spoken || spoken.length > 500) spoken = conciseSpeechCandidate(answer.text).text;
+            if (!spoken) { setNotice('语音摘要未生成，可手动播放完整回答'); return; }
+            setNotice('');
+            await speechController.play(spoken);
+          } catch (cause) {
+            if (!summaryRequest.signal.aborted) setNotice(cause instanceof Error ? cause.message : '本机语音播放失败');
+          } finally {
+            if (spokenSummaryRequest.current === summaryRequest) spokenSummaryRequest.current = null;
+          }
+        };
+        void readSummary();}
       const facts=answer.search?.memory?.sessionFacts||answer.sessionFacts||[];setMemorySuggestions(facts.filter(item=>item.confirmedByUser===true));
       if ((activeMode === 'chat' || config.commercialMode) && !answer.simulated) setUsageRefresh(old => old + 1);
       if (activeMode === 'chat') setConversation(old => appendConversation(old, value, answer.text, answer.search?.sources));
@@ -298,6 +326,7 @@ export function WorkbenchApp() {
   useEffect(() => { if (capture !== 'recording') { if (timer.current) window.clearInterval(timer.current); return; } timer.current = window.setInterval(() => setSeconds(Math.min(120, Math.floor((Date.now() - (task.current?.started || Date.now())) / 1000))), 250); return () => { if (timer.current) window.clearInterval(timer.current); }; }, [capture]);
 
   const startRecording = async (origin: 'workbench' | 'external' = 'workbench', requestedMode: WorkMode = mode) => {
+    spokenSummaryRequest.current?.abort();
     speechController.stop();
     if (busy || capture !== 'idle' && capture !== 'ready' && capture !== 'error') return false;
     if (!agreement) { setError('请先阅读并同意使用说明'); return false; }
@@ -311,6 +340,7 @@ export function WorkbenchApp() {
     return started;
   };
   const cancel = () => {
+    spokenSummaryRequest.current?.abort();
     speechController.stop();
     const processingCancelled = Boolean(controller.current); controller.current?.abort(); const captureCancelled = session.current?.cancel() ?? false;
     generation.current++;
