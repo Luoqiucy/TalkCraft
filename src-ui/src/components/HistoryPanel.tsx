@@ -22,7 +22,7 @@ const exportName = (record: HistoryRecord, ext: string) => { const date = new Da
 type Feedback = { type: string; description: string; expectedText: string; attachText: boolean; attachAudio: boolean; attachDiagnostic: boolean };
 const emptyFeedback: Feedback = { type: 'recognition', description: '', expectedText: '', attachText: false, attachAudio: false, attachDiagnostic: false };
 
-export function HistoryPanel() {
+export function HistoryPanel({ revision = 0 }: { revision?: number }) {
   const [page, setPage] = useState<HistoryPage | null>(null);
   const [records, setRecords] = useState<HistoryRecord[]>([]);
   const [selected, setSelected] = useState<HistoryRecord | null>(null);
@@ -42,12 +42,14 @@ export function HistoryPanel() {
   const [feedbackBusy, setFeedbackBusy] = useState(false);
   const [memoryDraft,setMemoryDraft]=useState<{record:HistoryRecord;content:string;reason:string;type:'preference'|'fact'|'project'|'term'}|null>(null);
   const sequence = useRef(0);
+  const appliedQuery = useRef('');
   const diagnosticController = useRef<AbortController | null>(null);
   const retryController = useRef<AbortController | null>(null);
   const [retrying, setRetrying] = useState(false);
   const undoTimer = useRef<number | null>(null);
 
   const load = async (append = false, search = query, filter = mode) => {
+    if (!append) appliedQuery.current = search;
     const ticket = ++sequence.current;
     setLoading(true); setError('');
     try {
@@ -59,7 +61,7 @@ export function HistoryPanel() {
     } catch (cause) { if (ticket === sequence.current) setError(cause instanceof Error ? cause.message : '历史读取失败'); }
     finally { if (ticket === sequence.current) setLoading(false); }
   };
-  useEffect(() => { void load(false, query, mode); return () => { sequence.current++; }; }, [mode]);
+  useEffect(() => { void load(false, appliedQuery.current, mode); return () => { sequence.current++; }; }, [mode, revision]);
   useEffect(() => { if (jumpToSources && selected?.id === jumpToSources) { document.getElementById(`history-sources-${jumpToSources}`)?.scrollIntoView({ block: 'start' }); setJumpToSources(''); } }, [jumpToSources, selected?.id]);
   useEffect(() => () => { diagnosticController.current?.abort(); retryController.current?.abort(); if (undoTimer.current) window.clearTimeout(undoTimer.current); }, []);
   const copy = async (value?: string | null) => { if (!value) return; try { await clipboardWrite(value); setNotice('已复制全文'); } catch { setError('复制失败，请手动选择文字'); } };
@@ -165,7 +167,7 @@ export function HistoryPanel() {
     <p className="muted">历史保存在本机，未加密。云端识别会上传音频，云端文字服务会上传文字。{page?.directory && `保存位置：${page.directory}`}</p>
     {notice && <p className="live-status" role="status">{notice}</p>}{deletedId && <button onClick={() => void undo()}>撤销删除</button>}{error && <p className="error-text" role="alert">{error}</p>}
     {loading && <p className="muted">正在读取本机历史…</p>}{!loading && !records.length && <p className="muted">{query || mode !== 'all' ? '没有符合条件的记录' : '暂无历史记录'}</p>}
-    {!!records.length && <div className="history-columns"><div className="history-list">{records.map(record => { const group = dateGroup(record.createdAt); const heading = group !== lastGroup; lastGroup = group; return <div key={record.id}>{heading && <h3>{group}</h3>}<article className={selected?.id === record.id ? 'history-item selected' : 'history-item'}><button className="history-open" onClick={() => setSelected(record)}><b>{modes[record.mode || ''] || '未知模式'} · {historyStatus[record.status || ''] || (record.status ? '状态未知' : '状态未记录')}</b><span>{record.createdAt ? new Date(record.createdAt).toLocaleTimeString('zh-CN') : '时间未记录'}</span><p>{(record.originalTranscript || record.revisedText || record.aiResult || record.error || '没有文字结果').slice(0, 130)}</p></button><div className="history-row-actions">{record.mode === 'chat' && record.attempts?.some(attempt => attempt.search?.sources?.length) && <button onClick={() => { setSelected(record); setJumpToSources(record.id); }}>查看资料来源</button>}<button disabled={!record.originalTranscript && !record.revisedText} onClick={() => void copy(record.originalTranscript || record.revisedText)}>复制转录</button><button onClick={() => openFeedback(record)}>反馈</button><details><summary>更多</summary><button disabled={!record.audio} title={record.audioReason || ''} onClick={() => void exportAudio(record)}>导出音频…</button><button onClick={() => setSelected(record)}>查看详情</button></details></div></article></div>; })}{page && records.length < page.total && <button onClick={() => void load(true)} disabled={loading}>加载更多</button>}</div>
+    {!!records.length && <div className="history-columns"><div className="history-list">{records.map(record => { const group = dateGroup(record.createdAt); const heading = group !== lastGroup; lastGroup = group; return <div key={record.id}>{heading && <h3>{group}</h3>}<article className={selected?.id === record.id ? 'history-item selected' : 'history-item'}><button className="history-open" onClick={() => setSelected(record)}><b>{modes[record.mode || ''] || '未知模式'} · {historyStatus[record.status || ''] || (record.status ? '状态未知' : '状态未记录')}</b><span>{record.createdAt ? new Date(record.createdAt).toLocaleTimeString('zh-CN') : '时间未记录'}</span><p>{(record.originalTranscript || record.revisedText || record.aiResult || record.error || '没有文字结果').slice(0, 130)}</p></button><div className="history-row-actions">{record.mode === 'chat' && record.attempts?.some(attempt => attempt.search?.sources?.length) && <button onClick={() => { setSelected(record); setJumpToSources(record.id); }}>查看资料来源</button>}<button disabled={!record.originalTranscript && !record.revisedText} onClick={() => void copy(record.originalTranscript || record.revisedText)}>复制转录</button><button onClick={() => openFeedback(record)}>反馈</button><details><summary>更多</summary><button disabled={!record.audio} title={record.audioReason || ''} onClick={() => void exportAudio(record)}>导出音频…</button><button onClick={() => setSelected(record)}>查看详情</button></details></div></article></div>; })}{page && records.length < page.total && <button onClick={() => void load(true, appliedQuery.current)} disabled={loading}>加载更多</button>}</div>
       <article className="react-card history-detail"><h2>{selected ? `${modes[selected.mode || ''] || '历史记录'} · ${historyStatus[selected.status || ''] || (selected.status ? '状态未知' : '状态未记录')}` : '选择一条记录'}</h2>{selected && <>
         {selected.status && !['completed','success','ai-completed'].includes(selected.status) && selected.error && <p className="history-record-error" role="alert">{selected.error}</p>}
         {selected.mode === 'chat' ? <>
