@@ -6,6 +6,8 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-07
+
 ### 变更
 - 界面改版：浅色主题改为暖白纸感配珊瑚橙，深色主题改为近黑配薰衣草蓝；顶部导航改为左侧边栏，四个模式改为分段切换，卡片、按钮和对话框统一圆角与留白。
 
@@ -39,6 +41,7 @@
 
 - 首个上传到私有仓库的开发版基线：语音听写、提示词整理、翻译、联网问答，Windows（Tauri）开发版与 macOS 开发构建。
 
-[Unreleased]: https://github.com/Luoqiucy/TalkCraft/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Luoqiucy/TalkCraft/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Luoqiucy/TalkCraft/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Luoqiucy/TalkCraft/compare/e606c4e...v0.2.0
 [0.1.0]: https://github.com/Luoqiucy/TalkCraft/tree/e606c4e
