@@ -3059,7 +3059,7 @@ dependencies = [
 
 [[package]]
 name = "talkcraft-keyboard-hook"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "windows-sys 0.59.0",
 ]
@@ -4439,7 +4439,7 @@ dependencies = [
 
 [[package]]
 name = "wireless-ai-mic"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "serde_json",
  "tauri",
