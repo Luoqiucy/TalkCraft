@@ -13,7 +13,6 @@ import {createWorkspaceStore} from './src/workspace.mjs';
 import {createTelemetryStore} from './src/telemetry.mjs';
 import {createTextSettings} from './src/text-settings.mjs';
 import {createUserPreferencesStore} from './src/user-preferences.mjs';
-import {createKokoroVoice} from './src/kokoro-voice.mjs';
 import {runtimeStatePath} from './src/runtime-paths.mjs';
 import {createHistoryStore} from './src/local-history.mjs';
 import {createHistoryHandler} from './src/history-http.mjs';
@@ -48,7 +47,6 @@ export function createServer({history,shutdownToken,onDesktopExit,provider = loa
   const searchCache=new Map();
   const clearExpiredSearches=()=>{const cutoff=Date.now()-300000;for(const [id,item] of searchCache)if(item.at<cutoff)searchCache.delete(id);};
   const searchCleanup=setInterval(clearExpiredSearches,60000);searchCleanup.unref();
-  const localVoice = createKokoroVoice();
   const server=http.createServer(async (req, res) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Cache-Control', 'no-store');
@@ -56,7 +54,6 @@ export function createServer({history,shutdownToken,onDesktopExit,provider = loa
     res.on('close', () => {if (!res.writableEnded) controller.abort();});
     try {
       if (!/^((127\.0\.0\.1)|(localhost))(:\d+)?$/.test(req.headers.host || '')) {res.writeHead(403); res.end(); return;}
-      if(await localVoice(req,res,controller.signal))return;
       if(await commercialHandler(req,res))return;
       if(await personalMemoryHandler(req,res))return;
       if(await historyHandler(req,res))return;
