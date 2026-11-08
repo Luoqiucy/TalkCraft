@@ -1,7 +1,7 @@
 import {createHash} from 'node:crypto';
 import {createReadStream, createWriteStream} from 'node:fs';
 import {access, mkdir, mkdtemp, rename, rm} from 'node:fs/promises';
-import {join} from 'node:path';
+import {join, relative} from 'node:path';
 import {Transform} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
 import bunzip from 'unbzip2-stream';
@@ -81,7 +81,11 @@ export function createKokoroVoice({root = runtimeStatePath('voice-packs'), fetch
       if (!await available()) throw new Error('请先安装 Kokoro 语音包');
       if (!engine) {
         const {default: sherpa} = await import('sherpa-onnx-node');
-        const file = name => join(modelDir, name);
+        // The Windows FST loader cannot open non-ASCII absolute paths.
+        // The desktop backend starts in the project directory, so the default
+        // voice pack path is ASCII when expressed relative to that directory.
+        const engineDir = process.platform === 'win32' ? relative(process.cwd(), modelDir) : modelDir;
+        const file = name => join(engineDir, name);
         engine = await sherpa.OfflineTts.createAsync({
           model: {numThreads: 2, provider: 'cpu', kokoro: {
             model: file('model.int8.onnx'), voices: file('voices.bin'), tokens: file('tokens.txt'),
