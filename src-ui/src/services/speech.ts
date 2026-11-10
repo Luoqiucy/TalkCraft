@@ -14,7 +14,7 @@ export function shouldAutoSpeakCompletedAnswer(input:{mode:string;webSearchEnabl
 export function setSpeechPreferences(options:{voiceURI?:string;rate?:number;volume?:number}){savedOptions={...options};}
 export function createSpeechController({synthesis=typeof speechSynthesis==='undefined'?undefined:speechSynthesis,utteranceFactory=(text:string)=>new SpeechSynthesisUtterance(text),broadcast}:{synthesis?:SynthesisLike;utteranceFactory?:(text:string)=>SpeechSynthesisUtterance;broadcast?:BroadcastChannel}={}){
  const bus=()=>broadcast||getChannel();
- return {available:()=>savedOptions.voiceURI?.startsWith('gpt-sovits:')||!!synthesis&&listLocalSpeechVoices(synthesis).length>0,voices:()=>listLocalSpeechVoices(synthesis),stop(){generation++;characterPlayback?.abort();synthesis?.cancel();active=undefined;activeUtterance=undefined;notifyStopped();bus()?.postMessage({type:'stop',sender:instanceId});},async play(text:string,options:{voiceURI?:string;rate?:number;volume?:number}={}){const effective={...savedOptions,...options};
+ return {available:()=>savedOptions.voiceURI?.startsWith('gpt-sovits:')||!!synthesis&&listLocalSpeechVoices(synthesis).length>0,voices:()=>listLocalSpeechVoices(synthesis),stop(){generation++;characterPlayback?.abort();synthesis?.cancel();active=undefined;activeUtterance=undefined;notifyStopped();bus()?.postMessage({type:'stop',sender:instanceId});},async play(text:string,options:{voiceURI?:string;rate?:number;volume?:number;preview?:boolean}={}){const effective={...savedOptions,...options};
     characterPlayback?.abort();
     if(effective.voiceURI?.startsWith('gpt-sovits:')){
       generation++;synthesis?.cancel();active=undefined;activeUtterance=undefined;

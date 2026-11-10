@@ -1,6 +1,6 @@
 import {execFile} from 'node:child_process';
 import {existsSync, readdirSync} from 'node:fs';
-import {mkdir, writeFile} from 'node:fs/promises';
+import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {dirname, isAbsolute, join} from 'node:path';
 import {promisify} from 'node:util';
 import {runtimeStatePath} from './runtime-paths.mjs';
@@ -33,7 +33,7 @@ export function createCharacterVoiceHandler() {
   const root = process.env.TALKCRAFT_GPT_SOVITS_DIR || (process.platform === 'win32' ? 'G:/GPT-SoVITS' : '');
   const cwd = join(root, 'runtime', 'GPT-SoVITS-v2-240821');
   const python = join(cwd, 'runtime', 'python.exe');
-  let busy = false;
+  let activeSynthesis;
   const marker = voice => runtimeStatePath('gpt-sovits-' + (catalog.indexOf(voice) + 1) + '.installed');
   function reference(voice) {
     if (!isAbsolute(root) || !existsSync(python)) return '';
@@ -53,7 +53,7 @@ export function createCharacterVoiceHandler() {
       }))));
       return true;
     }
-    if (!['/api/character-voices/install', '/api/character-voices/speak'].includes(route) || req.method !== 'POST') return false;
+    if (!['/api/character-voices/install', '/api/character-voices/preview', '/api/character-voices/speak'].includes(route) || req.method !== 'POST') return false;
     if (req.headers.origin !== 'http://' + req.headers.host || req.headers['content-type'] !== 'application/json') {
       res.writeHead(403); res.end(); return true;
     }
@@ -77,21 +77,38 @@ export function createCharacterVoiceHandler() {
       return true;
     }
     if (!existsSync(marker(voice))) throw new Error('请先安装这个角色音色');
+    if (route.endsWith('/preview')) {
+      const sample = join(root, 'talkcraft-previews', voice.name + '.wav');
+      const audio = await readFile(sample).catch(() => null);
+      if (!audio || audio.length < 44 || audio.toString('ascii', 0, 4) !== 'RIFF') {
+        throw new Error('本机缺少该角色的试听文件');
+      }
+      res.writeHead(200, {'Content-Type':'audio/wav'});
+      res.end(audio);
+      return true;
+    }
     const text = typeof input.text === 'string' ? input.text.trim() : '';
     if (!text || text.length > 600) throw new Error('角色音色每次可朗读 1–600 字');
-    if (busy) throw new Error('另一段角色语音正在合成');
-    busy = true;
+    activeSynthesis?.abort();
+    const job = new AbortController();
+    activeSynthesis = job;
+    const deadline = AbortSignal.timeout(90000);
+    const jobSignal = AbortSignal.any([job.signal, deadline, ...(signal ? [signal] : [])]);
     try {
+      jobSignal.throwIfAborted();
       const rate = Number.isFinite(input.rate) ? Math.min(2, Math.max(.5, input.rate)) : 1;
       const {stdout} = await execute(python, ['-c', synthesize, ref, text, String(rate)], {
-        cwd, encoding:'buffer', timeout:90000, maxBuffer:24 * 1024 * 1024, windowsHide:true, signal,
+        cwd, encoding:'buffer', maxBuffer:24 * 1024 * 1024, windowsHide:true, signal:jobSignal,
         env: {...process.env, PYTHONIOENCODING:'utf-8', version:'v2'},
       });
+      jobSignal.throwIfAborted();
       if (stdout.length < 44 || stdout.toString('ascii', 0, 4) !== 'RIFF') throw new Error('无有效音频');
       res.writeHead(200, {'Content-Type':'audio/wav'}); res.end(stdout);
     } catch {
-      throw new Error('本机角色语音合成失败或超时');
-    } finally { busy = false; }
+      throw new Error(deadline.aborted ? '角色语音合成超时，请重试' : job.signal.aborted ? '已切换到新的语音请求' : '本机角色语音合成失败');
+    } finally {
+      if (activeSynthesis === job) activeSynthesis = undefined;
+    }
     return true;
   };
 }

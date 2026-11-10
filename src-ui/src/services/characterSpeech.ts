@@ -1,5 +1,6 @@
-export async function playCharacterSpeech(id: string, text: string, options: {rate?:number;volume?:number}, signal: AbortSignal) {
-  const response = await fetch('/api/character-voices/speak', {
+export async function playCharacterSpeech(id: string, text: string, options: {rate?:number;volume?:number;preview?:boolean}, signal: AbortSignal) {
+  const route = options.preview ? 'preview' : 'speak';
+  const response = await fetch('/api/character-voices/' + route, {
     method: 'POST', signal, headers: {'Content-Type':'application/json'},
     body: JSON.stringify({id,text,rate:options.rate}),
   });
@@ -11,6 +12,7 @@ export async function playCharacterSpeech(id: string, text: string, options: {ra
   signal.throwIfAborted();
   const url = URL.createObjectURL(blob);
   const audio = new Audio(url);
+  if (options.preview) audio.playbackRate = Math.min(2, Math.max(.5, options.rate ?? 1));
   audio.volume = Math.min(1, Math.max(0, options.volume ?? 1));
   try {
     await new Promise<void>((resolve, reject) => {
