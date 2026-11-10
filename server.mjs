@@ -26,6 +26,7 @@ import {assessSearchEntity} from './src/agent/query-safety.mjs';
 import {validateHistory} from './public/conversation.mjs';
 import {createOpenMeteoWeatherTool} from './src/tools/weather.mjs';
 import {createWebpageTool} from './src/tools/webpage.mjs';
+import {createCharacterVoiceHandler} from './src/character-voices.mjs';
 const citedSourceIds=(answer,sources)=>{const ids=[];for(const match of String(answer||'').matchAll(/\[(\d{1,2})\]/g)){const source=sources?.[Number(match[1])-1];if(source?.sourceId&&!ids.includes(source.sourceId))ids.push(source.sourceId);}return ids;};
 const assets = {'/': ['index.html', 'text/html; charset=utf-8'], '/app.mjs': ['app.mjs', 'text/javascript; charset=utf-8'], '/recording.mjs': ['recording.mjs', 'text/javascript; charset=utf-8'], '/audio.mjs': ['audio.mjs', 'text/javascript; charset=utf-8'], '/conversation.mjs': ['conversation.mjs', 'text/javascript; charset=utf-8'], '/style.css': ['style.css', 'text/css; charset=utf-8']};
 export function createServer({history,shutdownToken,onDesktopExit,provider = loadProvider(),asr = loadAsr(),weatherTool=createOpenMeteoWeatherTool(),webpageTool=createWebpageTool(),agentEngine=resolveAgentEngine(),searchLimits={maxFollowups:2,maxToolCalls:6,totalTimeoutMs:45000,maxResults:8,prefetchPages:4,prefetchTimeoutMs:4000},telemetry=createTelemetryStore(),usageStore=createLocalUsageStore(),commercialBridge=createDesktopCommercialBridge(),textSettings=createTextSettings(runtimeStatePath('asr-test.env')),workspace=createWorkspaceStore(runtimeStatePath('workspace.json')),userPreferencesStore} = {}) {
@@ -34,6 +35,7 @@ export function createServer({history,shutdownToken,onDesktopExit,provider = loa
   const personalMemoryHandler=createPersonalMemoryHandler(personalMemoryStore,currentMemoryOwner,{syncRemote:commercialBridge?.syncMemories?.bind(commercialBridge)});
   const historyHandler=createHistoryHandler(historyStore,{onDelete:async recordId=>{const who=await currentMemoryOwner();return who?.ownerId?personalMemoryStore.removeBySource(who.ownerId,recordId):0;},onRestore:async recordId=>{const who=await currentMemoryOwner();return who?.ownerId?personalMemoryStore.restoreBySource(who.ownerId,recordId):0;},onClear:async recordIds=>{const who=await currentMemoryOwner();if(!who?.ownerId)return 0;let removed=0;for(const recordId of recordIds)removed+=personalMemoryStore.removeBySource(who.ownerId,recordId);return removed;}});
   const commercialHandler=createDesktopCommercialHandler(commercialBridge);
+  const characterVoiceHandler=createCharacterVoiceHandler();
   assets['/history-ui.mjs']=['history-ui.mjs','text/javascript; charset=utf-8'];
   assets['/shell.mjs']=['shell.mjs','text/javascript; charset=utf-8'];
   assets['/translation.mjs']=['translation.mjs','text/javascript; charset=utf-8'];
@@ -57,6 +59,7 @@ export function createServer({history,shutdownToken,onDesktopExit,provider = loa
       if(await commercialHandler(req,res))return;
       if(await personalMemoryHandler(req,res))return;
       if(await historyHandler(req,res))return;
+      if(await characterVoiceHandler(req,res,controller.signal))return;
       if(req.url==='/api/desktop-exit' && req.method==='POST'){
         if(!shutdownToken || req.headers.origin || req.headers['x-talkcraft-control']!==shutdownToken){res.writeHead(403);res.end();return;}
         res.writeHead(200);res.end('Closing');setImmediate(()=>onDesktopExit?.());return;
