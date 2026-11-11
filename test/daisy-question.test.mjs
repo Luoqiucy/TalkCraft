@@ -44,8 +44,8 @@ test('本机 /api/agent 连续天气对话把每一轮最终地点与范围传�
  const weatherTool={enabled:true,async query(intent){received.push(structuredClone(intent));return {status:'ok',provider:'fixture-weather',period:intent.period,timezone:'Asia/Shanghai',location:{name:intent.location},forecast:{date:'2026-10-02',condition:'晴',temperatureMax:24,temperatureMin:16,precipitationProbabilityMax:10,windSpeedMax:8},current:{temperature:20,condition:'晴'},sources:[{title:'fixture weather',url:'https://weather.example/data'}]};}};
  const server=createServer({provider,weatherTool,webpageTool:{enabled:false}});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));t.after(()=>new Promise(resolve=>server.close(resolve)));
  const history=[];
- for(const text of ['张家港天气怎么样','南京呢','杭州','明天呢']){const response=await fetch(`http://127.0.0.1:${server.address().port}/api/agent`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'chat',text,history,webSearch:true,cloudConsent:true})});assert.equal(response.status,200);const payload=await response.json();assert.equal(payload.search.status,'weather-data');history.push({role:'user',content:text},{role:'assistant',content:payload.text});}
- assert.deepEqual(received.map(item=>[item.location,item.period]),[['张家港','current-today'],['南京','current-today'],['杭州','current-today'],['杭州','tomorrow']]);
+ for(const text of ['查找江苏省苏州市的天气如何？','张家港天气怎么样','南京呢','杭州','明天呢','明天请帮我搜一下西藏自治区那曲市天气']){const response=await fetch(`http://127.0.0.1:${server.address().port}/api/agent`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'chat',text,history,webSearch:true,cloudConsent:true})});assert.equal(response.status,200);const payload=await response.json();assert.equal(payload.search.status,'weather-data');history.push({role:'user',content:text},{role:'assistant',content:payload.text});}
+ assert.deepEqual(received.map(item=>[item.location,item.period]),[['江苏省苏州市','current-today'],['张家港','current-today'],['南京','current-today'],['杭州','current-today'],['杭州','tomorrow'],['西藏自治区那曲市','tomorrow']]);
 });
 
 test('Daisy公司新闻实际循环用结构化公司和日期评估来源，不用整句口语做对象',async()=>{

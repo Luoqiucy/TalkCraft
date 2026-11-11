@@ -115,7 +115,7 @@ export function resolveQuestionContext(question,history=[],{contextEvidence=[],n
  if(weather||isBare&&previousWeather||contextualCity||weatherTemporalFollowup.test(effectiveText)&&(previousWeather||hasWeatherHistory)||weatherRangeFollowup.test(effectiveText)&&previousWeather){
   const cityValue=(isBare?(isBare[1]||isBare[2]||isBare[3]):contextualCity?.[1]||'').replace(/(?:呢|的(?:天气)?呢?)$/u,'');
   const parsedLocationRaw=weather?.location||'',parsedLocation=/^(?:未来|接下来|今后|后面|明天|明日|后天|一周|七天|\d+天)/u.test(parsedLocationRaw)?'':parsedLocationRaw,deicticLocation=/^(?:我)?(?:这里|当地|附近|当前位置|我所在位置)$/u.test(parsedLocation)?'':parsedLocation;
-  const temporalOnlyLocation=weatherTemporalFollowup.test(effectiveText)||/^(?:未来|接下来|今后|后面|明天|明日|后天|一周|七天|\d+天)/u.test(effectiveText.trim()),location=cityValue||(temporalOnlyLocation?previousWeather?.location||'':deicticLocation||previousWeather?.location||'');
+  const location=deicticLocation||cityValue||previousWeather?.location||'';
   const period=weather?.period||(isBare&&previousWeather?.location?'current-today':isBare?previousWeather?.period||'current-today':followupWeatherPeriod(effectiveText,previousWeather));
   const explicitWeatherRange=weather?.period&&weather.period!=='current-today';
   const comparisonLocations=weatherComparisonLocations(effectiveText),resolvedWeather={intent:'weather',location:comparisonLocations.length>1?'':location,period,targetDate:weather?.targetDate||(explicitWeatherRange?undefined:temporalFollowup.test(effectiveText)?undefined:previousWeather?.targetDate),days:weather?.days||(period==='next-days'?Number(effectiveText.match(/[2-6]/)?.[0]):undefined),timezone:'Asia/Shanghai',...(comparisonLocations.length>1?{locations:comparisonLocations}:{})};
