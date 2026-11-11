@@ -1,5 +1,19 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+
+test('天气指令、地点与日期分别解析，并保留地名中的“那”',()=>{
+ for (const [text,location,period] of [
+  ['查找江苏省苏州市的天气如何？','江苏省苏州市','current-today'],
+  ['麻烦帮我查找一下浙江省杭州市明天的天气','浙江省杭州市','tomorrow'],
+  ['明天请帮我搜一下西藏自治区那曲市天气','西藏自治区那曲市','tomorrow'],
+  ['搜索那曲天气','那曲','current-today'],
+ ]) {
+  const {request}=resolveQuestionContext(text,[]);
+  assert.equal(request.originalText,text);
+  assert.equal(request.weather.location,location);
+  assert.equal(request.weather.period,period);
+ }
+});
 import {resolveQuestionContext,validateLocationCoordinates} from '../src/agent/question-context.mjs';
 
 const turn=(question,answer='已回答')=>[{role:'user',content:question},{role:'assistant',content:answer}];

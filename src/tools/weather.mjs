@@ -6,6 +6,8 @@ const currentPattern=/(现在|当前|此刻|实时|今天|今日)/;
 const futureWeekPattern=/(?:未来|接下来|今后|后面)(?:一周|七天|7天)|这一周|这周|本周/;
 const futureMonthPattern=/(?:未来|接下来|今后|后面)(?:一个月|一月|30天|30日)|未来30天/;
 const ambiguousWeekPattern=/最近(?:一周|七天|7天)/;
+// Only consume request verbs at the start of a clause, never inside a place name.
+const weatherRequestPrefix=/^(?:(?:那么|那(?=[，,\s]|今天|明天|后天|现在|请|帮)|麻烦|请问|帮我|请|给我|我想|想知道|查找|查一查|查一下|查询|搜一下|搜索|检索|看一下|看看|告诉我|一下)[\s，,]*)+/u;
 const maxBody=512*1024;
 
 function targetWeatherDate(query,now){
@@ -21,17 +23,20 @@ export function parseWeatherQuestion(query,{now=new Date()}={}){
   const targetDate=targetWeatherDate(query,now);
   const period=ambiguousWeekPattern.test(query)?'ambiguous-week':futureMonthPattern.test(query)?'next-month':futureWeekPattern.test(query)||days===7?'next-seven-days':days?'next-days':targetDate?'specific-date':dayAfterPattern.test(query)?'day-after-tomorrow':tomorrowPattern.test(query)?'tomorrow':'current-today';
   let location=query.trim()
+    .replace(weatherRequestPrefix,'')
     .replace(/https?:\/\/\S+/gi,' ')
     .replace(/(?:(?:20\d{2})\s*年\s*)?\d{1,2}\s*月\s*\d{1,2}\s*(?:日|号)/g,' ')
-    .replace(/(请问|麻烦|帮我|查一下|查询|告诉我|想知道|看看|那|那么)/g,' ')
-    .replace(/(帮|请|并(?:且|显示)?|同时|然后|显示|给我|一下)/g,' ')
+    .replace(/(请问|麻烦|帮我|查一下|查询|告诉我|想知道|看看)/g,' ')
     .replace(/从(?:今天|今日|现在)到(?:接下来|未来|今后|后面)?\s*[2-7]\s*天/g,' ')
     .replace(/从(?:今天|今日|现在)到/g,' ')
     .replace(/[2-7]\s*天/g,' ')
     .replace(/(后天|明天|明日|翌日|今天|今日|现在|当前|此刻|实时|最近|未来|接下来|今后|后面|这一周|这周|本周|一个月|一月|30天|30日|一周|七天|7天|未来(?:一|1)天)/g,' ')
+    .trimStart().replace(weatherRequestPrefix,'')
+    .replace(/(帮|请|并(?:且|显示)?|同时|然后|显示|给我|一下)/g,' ')
     .replace(/(的)?(天气预报|天气|气温|温度|下雨|降雨|降雪|风力|湿度|空气质量|紫外线|穿衣指数)/g,' ')
     .replace(/(是什么样|什么样|会不会|将会|会|将|怎么样|如何|怎样|多少|情况|呢|吗|呀|啊|？|\?|。|，|,|、|；|;|\s+)/g,' ')
-    .replace(/\s+/g,' ').trim().replace(/^(?:的\s*)+|(?:\s*的)+$/g,'').trim();
+    .replace(/\s+/g,' ').trim().replace(weatherRequestPrefix,'')
+    .replace(/^(?:的\s*)+|(?:\s*的)+$/g,'').trim();
   const parts=location.split(' ').filter(Boolean);location=parts.filter((part,index)=>parts.indexOf(part)===index).join(' ');
   if(location.length<2)location='';
   return {intent:'weather',period,location,timezone:'Asia/Shanghai',...(period==='next-days'?{days}:{}),...(targetDate?{targetDate}:{})};
