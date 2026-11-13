@@ -23,9 +23,13 @@ export function appendConversation(history: ConversationTurn[], question: string
 export function restoreConversation(records: HistoryRecord[]): ConversationTurn[] {
   let conversation: ConversationTurn[] = [];
   for (const record of [...records].reverse()) {
-    if (record.mode !== 'chat' || record.status !== 'completed' || !record.revisedText?.trim() || !record.aiResult?.trim()) continue;
+    // Local history stores a spoken question only in originalTranscript; revisedText is
+    // kept empty unless the user edited it. Without this fallback no voice question
+    // came back as context after a restart.
+    const question = record.revisedText?.trim() ? record.revisedText : record.originalTranscript || '';
+    if (record.mode !== 'chat' || record.status !== 'completed' || !question.trim() || !record.aiResult?.trim()) continue;
     const answer = historyAnswerEntries(record).find(entry => entry.answer === record.aiResult);
-    conversation = appendConversation(conversation, record.revisedText, record.aiResult, answer?.search?.sources);
+    conversation = appendConversation(conversation, question, record.aiResult, answer?.search?.sources);
   }
   return conversation;
 }

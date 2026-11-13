@@ -50,3 +50,9 @@ test('被新问题打断的问答以完整一问一答保留，后续请求仍�
   const next = appendConversation(interrupted, '明天呢', '杭州明天多云。');
   assert.doesNotThrow(() => validateHistory(next.map(({ role, content }) => ({ role, content }))));
 });
+
+test('语音问题只存原始转写时，重启后也恢复为上下文', () => {
+ const spoken = { id: 'voice', mode: 'chat', status: 'completed', originalTranscript: '帮我查一下荥阳的天气如何？', revisedText: '', aiResult: '荥阳今天有毛毛雨。' };
+ const edited = { id: 'edited', mode: 'chat', status: 'completed', originalTranscript: '荥阳天汽', revisedText: '荥阳美食', aiResult: '烧饼夹卤肉。' };
+ assert.deepEqual(restoreConversation([edited, spoken]).map(item => item.content), ['帮我查一下荥阳的天气如何？', '荥阳今天有毛毛雨。', '荥阳美食', '烧饼夹卤肉。']);
+});
