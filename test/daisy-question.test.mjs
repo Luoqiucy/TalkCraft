@@ -250,3 +250,26 @@ test('个人偏好查询不注册或调用公开搜索工具',async()=>{
  const request={intent:'personal-memory',originalText:'你记得我喜欢什么水果吗？',resolvedQuestion:'用户事实',sessionFacts:[{predicate:'likes-eating',object:'香蕉',frequency:'unspecified',confirmedByUser:true}],queryConstraints:{publicSearch:false}};
  const {result,answer}=await answerDaisyQuestion(provider,{text:'用户事实',originalText:request.originalText,request,webSearch:true});assert.equal(searched,0);assert.equal(result.tool,'none');assert.equal(result.status,'memory-only');assert.equal(result.memory.sessionFacts[0].object,'香蕉');assert.match(answer.text,/香蕉/);
 });
+
+test('天气地点只匹配到同名村镇时，回答开头写明实际查询的地点',async()=>{
+ const weatherTool={enabled:true,async query(intent){return {status:'ok',provider:'open-meteo',period:'current-today',timezone:'Asia/Shanghai',locationConfidence:'low',location:{name:'荥阳',admin1:'云南',admin2:'保山市',country:'中国'},current:{observedAt:'2026-09-30T20:00',condition:'晴',temperature:18},forecast:{date:'2026-09-30',condition:'晴',temperatureMax:22,temperatureMin:12},sources:[{title:'Open-Meteo',url:'https://api.open-meteo.com/v1/forecast'}]};}};
+ const seen=[];const provider={id:'deepseek',model:'test',async streamWithTools(messages){seen.push(structuredClone(messages));if(seen.length===1)return {content:'',toolCalls:[call('w1','get_weather',{})]};return {content:'荥阳今天晴，18℃[1]。',toolCalls:[]};}};
+ const {answer}=await answerDaisyQuestion(provider,{text:'荥阳天气怎么样？',webSearch:true},{weatherTool,now:new Date('2026-09-30T12:00:00.000Z')});
+ assert.match(answer.text,/^提示：天气服务只找到“荥阳，云南，保山市”/);assert.match(answer.text,/18℃/);
+ assert.match(JSON.stringify(seen.at(-1)),/地点可信度：低/);
+});
+
+test('产品对象核对没通过但回答有引用时保留回答并提示核对，不换成固定拒答',async()=>{
+ // From saved history: the object parsed from speech was "小米刚发布的这个鹏程N70", so the
+ // check failed although the sources answered the question.
+ const question='小米刚发布的这个鹏程 N70，它的价格是多少钱？';let turn=0;
+ const provider={id:'deepseek',async streamWithTools(){turn++;if(turn===1)return {content:'',toolCalls:[call('s1','search_web',{query:'小米 鹏程 N70 价格'})]};return {content:'小米鹏程 N70 官方指导价 19.99 万元起[1]。',toolCalls:[]};},async search(){return {performed:true,backend:'firecrawl',sources:[{title:'鹏程N70上市 售价19.99万起',url:'https://auto.example.com/n70',snippet:'鹏程N70 正式上市，官方指导价19.99万元起。'}]};}};
+ const {result,answer}=await answerDaisyQuestion(provider,{text:question});
+ assert.equal(result.quality.sufficient,false);
+ assert.match(answer.text,/19\.99 万元起\[1\]/);assert.doesNotMatch(answer.text,/不足以核实完整请求/);assert.match(answer.text,/核对型号和价格/);
+});
+test('产品回答没有任何引用时仍不采用，避免把模型记忆当查询结果',async()=>{
+ let turn=0;const provider={id:'deepseek',async streamWithTools(){turn++;if(turn===1)return {content:'',toolCalls:[call('s1','search_web',{query:'小米 鹏程 N70 价格'})]};return {content:'小米鹏程 N70 售价 15 万元。',toolCalls:[]};},async search(){return {performed:true,sources:[{title:'别的车',url:'https://auto.example.com/other',snippet:'另一款车上市。'}]};}};
+ const {answer}=await answerDaisyQuestion(provider,{text:'小米刚发布的这个鹏程 N70，它的价格是多少钱？'});
+ assert.doesNotMatch(answer.text,/15 万元/);
+});

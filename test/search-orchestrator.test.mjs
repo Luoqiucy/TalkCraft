@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {classifyQuestionIntent,evaluateSearchEvidence,orchestrateSearch} from '../src/search-orchestrator.mjs';
+import {analyzeProductQuestion,classifyQuestionIntent,evaluateSearchEvidence,orchestrateSearch} from '../src/search-orchestrator.mjs';
 import {createOpenMeteoWeatherTool} from '../src/tools/weather.mjs';
 
 const now=new Date('2026-09-19T04:00:00Z');
@@ -157,4 +157,11 @@ test('首轮没有英文品牌名时先核实官方英文名，再用原型号�
 test('从英文证据提取品牌别名时不把冠词带入补查对象',async()=>{
  const calls=[],provider={async search(query){calls.push(query);if(calls.length===1)return {performed:true,requested:true,sources:[{title:'理想i9媒体参数',url:'https://media.example/i9'}],synthesis:'The Li Auto i9 was launched in 2026，售价36.98万元，尺寸5225毫米，续航705公里。'};return {performed:true,requested:true,sources:[{title:'Li Auto Inc. Launches Li i9',url:'https://ir.lixiang.com/news-releases/i9',snippet:'Li Auto officially launched Li i9 in 2026 with price and range details.'}],synthesis:'Li Auto官方公告确认Li i9。'};}};
  await orchestrateSearch(provider,'帮我查一下理想i9的详细参数',{now,maxFollowups:1});assert.match(calls[1],/Li Auto i9/);assert.doesNotMatch(calls[1],/the Li Auto i9/i);
+});
+
+test('口语里的修饰词和动作词不进入品牌名',()=>{
+ assert.equal(analyzeProductQuestion('小米刚发布的这个鹏程 N70，它的价格是多少钱？').brand,'小米鹏程');
+ assert.equal(analyzeProductQuestion('小米新做的这个，这个汽车是什么型号的？ 最新款汽车参数')?.brand,'小米');
+ assert.equal(analyzeProductQuestion('帮我打开电脑上的波点音乐 最新款电脑参数')?.brand,'');
+ assert.equal(analyzeProductQuestion('最新款的苹果手机是哪一个？').brand,'苹果');
 });

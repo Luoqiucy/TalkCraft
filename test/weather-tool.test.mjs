@@ -84,3 +84,26 @@ test('指定日期与七天预报共用一次天气请求，目标日来自真�
 test('无地点不请求网络；实际歧义时要求选择',async()=>{let calls=0;const tool=createOpenMeteoWeatherTool({fetchImpl:async()=>{calls++;throw Error();},now:fixed});assert.equal((await tool.query(parseWeatherQuestion('今天天气'))).status,'needs-location');assert.equal(calls,0);const ambiguous=upstream({places:{results:[{...place,name:'Springfield',country:'美国',country_code:'US',admin1:'A',population:10000},{...place,name:'Springfield',country:'加拿大',country_code:'CA',admin1:'B',population:9000}]}});const result=await createOpenMeteoWeatherTool({fetchImpl:ambiguous.fetchImpl,now:fixed}).query({location:'Springfield',period:'current-today'});assert.equal(result.status,'ambiguous-location');assert.equal(ambiguous.calls.length,1);});
 test('旧日期或不完整天气数据拒绝，不能标记获取成功',async()=>{for(const weather of [{...forecast,daily:{...forecast.daily,time:['2025-09-19','2025-09-20']}},{...forecast,current:{...forecast.current,time:'2025-09-19T12:00'}}]){const u=upstream({weather});await assert.rejects(createOpenMeteoWeatherTool({fetchImpl:u.fetchImpl,now:fixed}).query(parseWeatherQuestion('南京天气')),/所需日期|日期不符/);}});
 test('天气服务失败、超时和用户取消均停止且不伪造结果',async()=>{const failed=createOpenMeteoWeatherTool({fetchImpl:async()=>new Response('{}',{status:503}),now:fixed});await assert.rejects(failed.query(parseWeatherQuestion('南京天气')),/暂时不可用/);const wait=(_url,{signal})=>new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(signal.reason),{once:true}));await assert.rejects(createOpenMeteoWeatherTool({fetchImpl:wait,timeoutMs:10,now:fixed}).query(parseWeatherQuestion('南京天气')),/超时/);const controller=new AbortController(),pending=createOpenMeteoWeatherTool({fetchImpl:wait,now:fixed}).query(parseWeatherQuestion('南京天气'),{signal:controller.signal});controller.abort();await assert.rejects(pending,e=>e.name==='AbortError');});
+
+// Shapes of real Open-Meteo geocoding answers from 2026-11 (GeoNames, language=zh).
+const geo=(name,admin1,admin2,feature_code,population,latitude=30,longitude=110)=>({name,admin1,admin2,feature_code,population,latitude,longitude,timezone:'Asia/Shanghai',country_code:'CN',country:'中国'});
+function geocoder(byName){const calls=[];return {calls,fetchImpl:async input=>{const url=new URL(input);calls.push(url.searchParams.get('name')||'forecast');return Response.json(url.hostname.includes('geocoding')?{results:byName[url.searchParams.get('name')]||[]}:forecast);}};}
+test('县城优先于同名村庄，不再把“固安”当成需要选择的歧义地点',async()=>{
+ const u=geocoder({固安:[geo('固安','河北省','廊坊市','PPLA3',0,39.43,116.29),geo('固安','黑龙江','哈尔滨市','PPL',0,45.8,126.6)]});
+ const result=await createOpenMeteoWeatherTool({fetchImpl:u.fetchImpl,now:fixed}).query({location:'固安',period:'current-today'});
+ assert.equal(result.status,'ok');assert.equal(result.location.admin1,'河北省');
+});
+test('裸地名只找到乡镇时改查“X市”，周口取河南周口市',async()=>{
+ const u=geocoder({周口:[geo('周口','四川','南充市','PPLA3',0),geo('周口','广西','玉林市','PPL',0),geo('周口','河南','洛阳市','PPL',0)],周口市:[geo('周口市','河南','周口市','PPLA2',505171,33.61,114.65)]});
+ const result=await createOpenMeteoWeatherTool({fetchImpl:u.fetchImpl,now:fixed}).query({location:'周口',period:'current-today'});
+ assert.equal(result.status,'ok');assert.equal(result.location.name,'周口市');assert.equal(result.location.admin1,'河南');assert.equal(result.locationConfidence,undefined);
+ assert.deepEqual(u.calls.slice(0,2),['周口','周口市']);
+});
+test('只有同名村庄时仍给数据但标记地点可信度低，好的城市匹配不多发请求',async()=>{
+ const weak=geocoder({荥阳:[geo('荥阳','云南','保山市','PPL',0,25.29,98.5)]});
+ const result=await createOpenMeteoWeatherTool({fetchImpl:weak.fetchImpl,now:fixed}).query({location:'荥阳',period:'current-today'});
+ assert.equal(result.status,'ok');assert.equal(result.locationConfidence,'low');assert.deepEqual(weak.calls,['荥阳','荥阳市','荥阳县','forecast']);
+ const strong=geocoder({郑州:[geo('郑州','河南','郑州市','PPLA',6650532)]});
+ await createOpenMeteoWeatherTool({fetchImpl:strong.fetchImpl,now:fixed}).query({location:'郑州',period:'current-today'});
+ assert.deepEqual(strong.calls,['郑州','forecast']);
+});

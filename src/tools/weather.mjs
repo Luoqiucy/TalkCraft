@@ -80,14 +80,20 @@ async function fetchJson(url,{signal,timeoutMs,fetchImpl}){
   catch(error){if(signal?.aborted)signal.throwIfAborted();if(timeout.signal.aborted)throw new WeatherToolError('天气查询超时',504);if(error instanceof WeatherToolError)throw error;throw new WeatherToolError('无法连接结构化天气服务');}finally{clearTimeout(timer);}
 }
 
+// GeoNames feature codes: capital, provincial seat, prefecture seat, county seat, township.
+const featureRank=place=>({PPLC:5,PPLA:4,PPLA2:3,PPLA3:2,PPLA4:1})[place?.feature_code]||0;
+// A village-level match with no population is often a namesake of the city the user
+// meant ("荥阳" returns only a village in Yunnan; "周口" only townships, while "周口市"
+// finds the city).
+const weakPlace=place=>!place||!((place.population||0)>0)&&featureRank(place)<3;
 function chooseLocation(requested,results){
   const valid=(Array.isArray(results)?results:[]).filter(x=>typeof x?.name==='string'&&finite(x.latitude)&&finite(x.longitude)&&typeof x.timezone==='string');
   if(!valid.length)return {error:'没有找到该地点，请补充城市或行政区名称'};
   // 城市行政后缀不应使同名小聚落挤掉真正的城市候选。
   const normalizeName=value=>value.trim().toLocaleLowerCase().replace(/[市县区]$/u,'');
   const exact=valid.filter(x=>normalizeName(x.name)===normalizeName(requested));const candidates=exact.length?exact:valid;
-  candidates.sort((a,b)=>(b.population||0)-(a.population||0));
-  if(candidates.length>1){const a=candidates[0],b=candidates[1],sameArea=a.country_code===b.country_code&&a.admin1===b.admin1;if(!sameArea&&(a.population||0)<Math.max(1,(b.population||0))*5)return {ambiguous:candidates.slice(0,3).map(x=>[x.name,x.admin1,x.country].filter(Boolean).join('，'))};}
+  candidates.sort((a,b)=>featureRank(b)-featureRank(a)||(b.population||0)-(a.population||0));
+  if(candidates.length>1){const a=candidates[0],b=candidates[1],sameArea=a.country_code===b.country_code&&a.admin1===b.admin1;if(!sameArea&&featureRank(a)===featureRank(b)&&(a.population||0)<Math.max(1,(b.population||0))*5)return {ambiguous:candidates.slice(0,3).map(x=>[x.name,x.admin1,x.country].filter(Boolean).join('，'))};}
   return {location:candidates[0]};
 }
 
@@ -99,7 +105,7 @@ export function createOpenMeteoWeatherTool({fetchImpl=fetch,timeoutMs=10000,now=
       if(intent.period==='ambiguous-week')return {status:'needs-period',question:`你想查询${intent.location}过去七天的历史天气，还是从今天开始的未来七天天气？`};
       if(intent.period==='next-month')return {status:'unsupported-range',provider:'open-meteo',location:{name:intent.location},question:'当前天气服务不提供未来一个月的逐日预报；可以查询未来七天，或查看气候统计。'};
       const started=Date.now();
-      let geocode,places,selected,coordinates=null;
+      let geocode,places,selected,coordinates=null,lowConfidence=false;
       const supplied=intent.coordinates;
       if(supplied&&Number.isFinite(supplied.latitude)&&Number.isFinite(supplied.longitude)&&Math.abs(supplied.latitude)<=90&&Math.abs(supplied.longitude)<=180)coordinates={latitude:Math.round(supplied.latitude*100)/100,longitude:Math.round(supplied.longitude*100)/100};
       if(coordinates)selected={location:{name:'当前位置附近',admin1:'',admin2:'',country:'',country_code:'CN',timezone:'Asia/Shanghai',...coordinates}};
@@ -107,6 +113,12 @@ export function createOpenMeteoWeatherTool({fetchImpl=fetch,timeoutMs=10000,now=
        for(const name of locationCandidates(intent.location)){geocode=new URL('https://geocoding-api.open-meteo.com/v1/search');geocode.search=new URLSearchParams({name,count:'10',language:'zh',format:'json'}).toString();places=await fetchJson(geocode,{signal,timeoutMs,fetchImpl});const results=name===intent.location&&!/[\p{Script=Han}]/u.test(intent.location)?places.results:(places.results||[]).filter(place=>matchesAdministrativeContext(intent.location,place));selected=chooseLocation(name,results);if(!selected.error)break;}
        if(selected.error)return {status:'needs-location',question:selected.error};
        if(selected.ambiguous)return {status:'ambiguous-location',question:`“${intent.location}”可能指多个地点，请选择：${selected.ambiguous.join('；')}。`,options:selected.ambiguous};
+       // Only a weak namesake came back for a bare name: the city form often exists
+       // under "X市"/"X县". This costs at most two extra lookups and only in that case.
+       if(weakPlace(selected.location)&&/^[\p{Script=Han}]{2,4}$/u.test(intent.location)){
+        for(const name of [`${intent.location}市`,`${intent.location}县`]){const url=new URL('https://geocoding-api.open-meteo.com/v1/search');url.search=new URLSearchParams({name,count:'10',language:'zh',format:'json'}).toString();let retry;try{retry=chooseLocation(name,(await fetchJson(url,{signal,timeoutMs,fetchImpl})).results);}catch(error){if(signal?.aborted)throw error;break;}if(retry.location&&!weakPlace(retry.location)){selected=retry;geocode=url;break;}}
+       }
+       if(weakPlace(selected.location)&&!/[省市县区]/u.test(intent.location))lowConfidence=true;
       }
       const place=selected.location,timezone=coordinates?'Asia/Shanghai':place.country_code==='CN'?'Asia/Shanghai':place.timezone;
       const requestedDays=intent.period==='next-seven-days'?7:intent.period==='next-days'?intent.days:intent.period==='day-after-tomorrow'?3:2;
@@ -124,6 +136,6 @@ export function createOpenMeteoWeatherTool({fetchImpl=fetch,timeoutMs=10000,now=
         if(typeof data?.current?.time!=='string'||!data.current.time.startsWith(today)||!finite(data.current.temperature_2m))throw new WeatherToolError('天气服务返回的实时观测数据缺失或日期不符');
         current={observedAt:data.current.time,condition:weatherLabel(data.current.weather_code),weatherCode:data.current.weather_code,temperature:data.current.temperature_2m,apparentTemperature:data.current.apparent_temperature,humidity:data.current.relative_humidity_2m,precipitation:data.current.precipitation,windSpeed:data.current.wind_speed_10m};
       }
-      return {status:'ok',provider:'open-meteo',period:intent.period,timezone,location:{name:place.name,admin1:place.admin1||'',admin2:place.admin2||'',country:place.country||'',...(coordinates?{}:{latitude:place.latitude,longitude:place.longitude})},...(intent.targetDate?{requestedDate:intent.targetDate}:{}),...(current?{current}:{}),forecast:daily,...(forecasts?{forecasts}:{}),elapsedMs:Date.now()-started,sources:coordinates?[{title:'Open-Meteo Weather Forecast API',url:'https://open-meteo.com/en/docs'}]:[{title:'Open-Meteo Weather Forecast API',url:forecast.href},{title:'Open-Meteo Geocoding API / GeoNames',url:geocode.href}]};
+      return {status:'ok',provider:'open-meteo',period:intent.period,timezone,location:{name:place.name,admin1:place.admin1||'',admin2:place.admin2||'',country:place.country||'',...(coordinates?{}:{latitude:place.latitude,longitude:place.longitude})},...(lowConfidence?{locationConfidence:'low'}:{}),...(intent.targetDate?{requestedDate:intent.targetDate}:{}),...(current?{current}:{}),forecast:daily,...(forecasts?{forecasts}:{}),elapsedMs:Date.now()-started,sources:coordinates?[{title:'Open-Meteo Weather Forecast API',url:'https://open-meteo.com/en/docs'}]:[{title:'Open-Meteo Weather Forecast API',url:forecast.href},{title:'Open-Meteo Geocoding API / GeoNames',url:geocode.href}]};
     }};
 }

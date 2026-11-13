@@ -223,11 +223,20 @@ export async function answerDaisyQuestion(provider,input,{signal,weatherTool,web
       if(!hasUnsupportedToolMarkup(closing.content))answer=String(closing.content||'').trim();
       combined.throwIfAborted();
     }
+    // The model tends to drop the province. When the place is only a weak namesake,
+    // say which place was used so a wrong town is caught instead of trusted.
+    if(weather?.status==='ok'&&weather.locationConfidence==='low'&&answer){const where=[weather.location?.name,weather.location?.admin1,weather.location?.admin2].filter(Boolean).join('，');answer=`提示：天气服务只找到“${where}”这个同名地点，可能不是你要查的地方；如果不是，请连同省份或所属城市再问一次。\n\n${answer}`;}
     if(intent.intent==='product-research')answer=alignSourceListCitations(answer,sources);
     const quality=weather?.status==='ok'?{intent:'weather',sufficient:true,reason:'已取得结构化天气观测或逐日预报'}:performed?evaluateSearchEvidence(question,{performed,sources,synthesis:messages.filter(item=>item.role==='tool').map(item=>item.content).join('\n').slice(0,20000)},{now,requireOfficialFacetCoverage:true,request:structuredRequest}):{intent:intent.intent,sufficient:false,reason:'未取得可核实的联网资料'};
     if(intent.intent==='weather'&&weather?.status!=='ok'){answer=weather?.question||'本次没有取得该地点和日期的有效天气数据，因此不能提供具体天气或温度。';status=status==='not-needed'?'not-invoked':status;}
     else if(needTool&&!performed){answer='本次联网工具没有取得可核实的资料，暂时无法根据实时信息回答。';status=status==='not-needed'?'not-invoked':status;}
     else if(intent.intent==='product-research'&&intent.latest===true)answer=reconcileLatestClaims(answer,{requested:true,confirmed:quality.latestConfirmed===true,reason:quality.reason});
+    else if(needTool&&!quality.sufficient&&intent.intent==='product-research'&&sources.length&&hasValidCitation(answer,sources)&&!(quality.officialSourceCount>0&&hedged(answer)&&!/(对象|不相关|没有确认)/.test(quality.reason||''))){
+      // The program's object check reads the object from spoken text and often gets it
+      // wrong ("小米刚发布的这个鹏程"), so a cited answer stays and only carries the gap.
+      // Saved history had 24 cited answers replaced by a fixed refusal this way.
+      if(!hedged(answer))answer=`${answer}\n\n提示：程序没能从来源完整核实这次的请求（${quality.reason}）。请以来源卡片中的资料为准，尤其核对型号和价格。`;
+    }
     else if(needTool&&!quality.sufficient&&intent.intent==='product-research'&&!(sources.length&&quality.officialSourceCount>0&&hasValidCitation(answer,sources)&&hedged(answer)&&!/(对象|不相关|没有确认)/.test(quality.reason||''))){
       // A generated answer cannot turn irrelevant or incomplete product evidence into a verified fact.
       const promoted=structuredRequest.entityCandidates.find(candidate=>candidate?.confirmed&&candidate?.confirmedModel);

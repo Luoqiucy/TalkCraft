@@ -58,6 +58,8 @@ export function analyzeProductQuestion(query){
   else if(/苹果\s*\d{1,2}(?:\s*(?:Pro\s*Max|Pro|Max|Plus|Mini|SE))?/i.test(raw)){brand='苹果';modelLine='iPhone';category='手机';}
   if(!brand&&categoryEntry){let prefix=raw.slice(0,categoryStart).trim();if(westernBrandModel&&westernBrandModel.index<categoryStart)brand=westernBrandModel[1];else if(modelMatch&&modelMatch.index<categoryStart)prefix=prefix.slice(0,modelMatch.index)+prefix.slice(modelMatch.index+modelMatch[0].length);if(!brand)brand=cleanPrefix(prefix);}
   if(!brand&&modelMatch){brand=cleanPrefix(raw.slice(0,modelMatch.index));}
+  // "小米刚发布的这个鹏程" names 小米 鹏程; the words in between describe it.
+  brand=brand.replace(/(?:刚刚?|新)(?:发布|推出|上市|出|做)的?|最近(?:发布|推出|上市)的?|的?这个|的?那个|这款|那款/gu,'').replace(/^(?:打开|关闭|播放|下载|安装)?(?:我的?)?/u,'').trim();
   brand=brand.replace(/[？?，,。；;：:\s]+$/g,'').slice(-32);
   const userModel=explicitModel; if(noisyModelTail)explicitModel='';
   const modelCode=explicitModel.match(/[A-Za-z]+\s*[- ]?\s*\d+/)?.[0].replace(/\s+/g,'').toLowerCase();
@@ -210,7 +212,7 @@ function mergeSources(results,maxResults){const map=new Map();for(const result o
 function evidenceBrandAlias(product,results){if(!product?.modelCode)return'';const escaped=product.modelCode.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),pattern=new RegExp(`\\b([A-Z][A-Za-z]+(?:\\s+[A-Z][A-Za-z]+){0,2})\\s+${escaped}\\b`,'i'),text=results.flatMap(result=>[result.synthesis,...(result.sources||[]).flatMap(source=>[source.title,source.snippet])]).filter(Boolean).join('\n'),match=text.match(pattern),alias=match?.[1]?.trim().replace(/^(?:the|a|an)\s+/i,'');return alias?.slice(0,80)||'';}
 export function weatherSynthesis(data){
   const place=[data.location.name,data.location.admin1,data.location.country].filter(Boolean).join('，'),daily=data.forecast;
-  const lines=[`结构化天气提供器：Open-Meteo`,`地点：${place}`,`时区：${data.timezone}`,`请求范围：${data.period==='tomorrow'?'明日预报':data.period==='next-seven-days'?'从今天开始的未来七天预报':data.period==='next-days'?`从今天开始的未来${data.forecasts?.length||'多'}天预报`:'当前天气与今日概况'}`];
+  const lines=[`结构化天气提供器：Open-Meteo`,`地点：${place}`,...(data.locationConfidence==='low'?['地点可信度：低。天气服务只找到这个同名的村镇级地点，可能不是用户所指的城市；回答开头写明省份，并请用户核对。']:[]),`时区：${data.timezone}`,`请求范围：${data.period==='tomorrow'?'明日预报':data.period==='next-seven-days'?'从今天开始的未来七天预报':data.period==='next-days'?`从今天开始的未来${data.forecasts?.length||'多'}天预报`:'当前天气与今日概况'}`];
   if(data.current)lines.push(`实时观测（${data.current.observedAt}）：${data.current.condition}，当前温度 ${data.current.temperature}℃，体感 ${data.current.apparentTemperature}℃，湿度 ${data.current.humidity}%，降水 ${data.current.precipitation} mm，风速 ${data.current.windSpeed} km/h。`);
   const forecasts=Array.isArray(data.forecasts)&&data.forecasts.length?data.forecasts:[daily];for(const item of forecasts)lines.push(`${item.date}预报：${item.condition}，最高 ${item.temperatureMax}℃，最低 ${item.temperatureMin}℃，最高降水概率 ${item.precipitationProbabilityMax}%，最大风速 ${item.windSpeedMax} km/h。`);return lines.join('\n');
 }
