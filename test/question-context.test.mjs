@@ -229,3 +229,52 @@ test('天气的否定改口只替换地点，地点比较则保留两个对象�
  const correction=resolveQuestionContext('不是南京，是杭州天气怎么样？');assert.equal(correction.request.weather.location,'杭州');assert.equal(correction.request.corrections[0].retracted,'南京');
  const comparison=resolveQuestionContext('南京和杭州天气比较一下');assert.deepEqual(comparison.request.weather.locations,['南京','杭州']);assert.equal(comparison.request.weather.location,'');assert.equal(comparison.needsClarification,true);
 });
+
+// Cases from saved chat history (2026-11-07 to 2026-11-12), wording kept as spoken.
+test('“当地/那里”续问带上最近问过的地点，不借用更早的产品',()=>{
+ const history=[...turn('红米手机最新款的是哪个型号？具体多少钱？'),...turn('北京的天气如何？'),...turn('帮我查一下荥阳的天气如何？'),...turn('当地有什么特色名吃吗？')];
+ const food=resolveQuestionContext('当地有什么特色名吃吗？',history.slice(0,6));
+ assert.equal(food.contextUsed,true);assert.match(food.query,/荥阳/);assert.notEqual(food.intent,'weather');
+ const fun=resolveQuestionContext('那，那里的话有什么好玩的地方吗？',history);
+ assert.equal(fun.contextUsed,true);assert.match(fun.query,/^荥阳 /);assert.equal(fun.intent==='product-research',false);assert.equal(/红米|小米/.test(fun.query),false);
+});
+test('地点只看最近三问；中间换了话题就不再补地点',()=>{
+ const stale=resolveQuestionContext('那里有什么好玩的？',[...turn('荥阳天气怎么样？'),...turn('解释一下蓝牙协议'),...turn('写一封请假邮件'),...turn('翻译一下这段话')]);
+ assert.equal(stale.contextUsed,false);assert.equal(stale.query.includes('荥阳'),false);
+ const changed=resolveQuestionContext('那里有什么好玩的？',[...turn('荥阳天气怎么样？'),...turn('解释一下蓝牙协议')]);
+ assert.equal(changed.query.includes('荥阳'),false);
+});
+test('“这个天气”追问沿用上轮天气地点，不把整句当地名',()=>{
+ const result=resolveQuestionContext('这个天气我适合穿什么衣服？',turn('张家港市的天气如何？'));
+ assert.equal(result.intent,'weather');assert.equal(result.request.weather.location,'张家港市');assert.equal(result.contextUsed,true);
+});
+test('“那X呢”是换对象，不把新品牌拼到上一款产品后面',()=>{
+ const result=resolveQuestionContext('那比亚迪汽车呢？',turn('小米最新的汽车是什么样的？'));
+ assert.equal(result.request.brand,'比亚迪');assert.equal(result.query.includes('小米'),false);
+});
+test('“最新款的苹果手机”识别品牌为苹果，续问不带入“款的苹果”',()=>{
+ const result=resolveQuestionContext('他在闲鱼上的价格是多少钱呢？',turn('最新款的苹果手机是哪一个？告诉我详细参数。'));
+ assert.equal(result.contextUsed,true);assert.equal(result.request.brand,'苹果');assert.equal(result.query.includes('款的苹果'),false);
+});
+test('“目前国内畅销”不是品牌，不作为后续问题的对象',()=>{
+ const result=resolveQuestionContext('它在闲鱼上目前挂牌价多少？',turn('目前国内畅销的汽车是哪一款？价格多少？'));
+ assert.equal(/目前|畅销/.test(result.request.subject||''),false);assert.equal(result.query.includes('畅销'),false);
+});
+test('换过话题后，单个“那…”不再接回旧产品；“它/价格呢”仍可接回',()=>{
+ const history=[...turn('小米最新的汽车是哪一款？'),...turn('北京的天气如何？')];
+ assert.equal(resolveQuestionContext('那有什么推荐的电影？',history).query.includes('小米'),false);
+ assert.match(resolveQuestionContext('它多少钱？',history).query,/小米/);
+ assert.match(resolveQuestionContext('那续航呢？',history).query,/小米/);
+ assert.match(resolveQuestionContext('那续航呢？',turn('小米最新的汽车是哪一款？')).query,/小米/);
+});
+test('续问自己点名了别的型号时，不把上一款产品拼进去；“本地位置”不是地点指代',()=>{
+ const tesla=resolveQuestionContext('特斯拉这款，呃，最新款的 model 3，它在闲鱼上目前挂牌价多少？',[...turn('小米最新的汽车是什么样的？'),...turn('那比亚迪汽车呢？')]);
+ assert.equal(/小米|比亚迪/.test(tesla.query),false);
+ const permission=resolveQuestionContext('我现在允许你获取本地位置。',turn('张家港天气怎么样？'));
+ assert.equal(permission.query.includes('张家港'),false);
+});
+test('“那个”仍可指上一款产品；“那个地方”在天气之后指地点，不当作城市名',()=>{
+ assert.match(resolveQuestionContext('那个多少钱？',turn('小米最新的汽车是哪一款？')).query,/小米/);
+ const place=resolveQuestionContext('那个地方好玩吗？',turn('荥阳天气怎么样？'));
+ assert.notEqual(place.intent,'weather');assert.match(place.query,/^荥阳 /);
+});

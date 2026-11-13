@@ -51,7 +51,7 @@ export function analyzeProductQuestion(query){
   const modelTail=modelMatch?raw.slice(modelMatch.index+modelMatch[0].length):'';
   const noisyModelTail=!!modelMatch&&/^\s*(?:放的|发的|放|发|方|这个用型号|的这个用|的用型号)/.test(modelTail);
   let brand='';
-  const cleanPrefix=value=>{let result=value.replace(/^[\s，,。；;：:]+|[\s，,。；;：:]+$/g,'');for(let i=0;i<3;i++)result=result.replace(/^(?:(?:那你|那么你|我最近买了一个|我买了一个|我最近买了|我买了|请问|麻烦|帮我|帮|请|给我|我需要获取|我想了解|我想知道|想了解|想知道|我需要|需要|上网|联网|网上|网络|查询|查找|查(?:询|找)?(?:一下|一查)?|搜(?:索|一下|一搜)?|检索|了解一下|了解|介绍|查看|找到|根据|关于|报道称|报道|新闻里|发布会中|最新的?|新款)\s*)+/i,'').replace(/^20\d{2}\s*款?\s*/,'').replace(/^(?:的|相关|有关)+/,'').replace(/(?:(?:最新|新款|最近|今年)?(?:发布|推出|上市|发售)?(?:最新款?|最新发布|最新|新款|最近发布|今年发布|目前在售)?|相关性|相关|这个新的|新的|这个|该产品|车型|车子|汽车|手机|型号|报道|的|呢)+$/gi,'').trim();return result;};
+  const cleanPrefix=value=>{let result=value.replace(/^[\s，,。；;：:]+|[\s，,。；;：:]+$/g,'');for(let i=0;i<3;i++)result=result.replace(/^(?:(?:那你|那么你|那么|那(?![些样])|我最近买了一个|我买了一个|我最近买了|我买了|请问|麻烦|帮我|帮|请|给我|我需要获取|我想了解|我想知道|想了解|想知道|我需要|需要|上网|联网|网上|网络|查询|查找|查(?:询|找)?(?:一下|一查)?|搜(?:索|一下|一搜)?|检索|了解一下|了解|介绍|查看|找到|根据|关于|报道称|报道|新闻里|发布会中|最新款的?|新款的?|最新的?|目前|现在|当前|国内|国外|市面上|畅销|热门|最火|最受欢迎)\s*)+/i,'').replace(/^20\d{2}\s*款?\s*/,'').replace(/^(?:的|相关|有关)+/,'').replace(/(?:(?:最新|新款|最近|今年)?(?:发布|推出|上市|发售)?(?:最新款?|最新发布|最新|新款|最近发布|今年发布|目前在售)?|相关性|相关|这个新的|新的|这个|该产品|车型|车子|汽车|手机|型号|报道|的|呢)+$/gi,'').trim();return result;};
   let modelLine='';
   if(/\bmacbook\b/i.test(raw)){brand='Apple';modelLine=/\bmacbook\s*pro\b/i.test(raw)?'MacBook Pro':'MacBook';category='电脑';}
   else if(/\biphone\b/i.test(raw)){brand='Apple';modelLine='iPhone';category='手机';}
